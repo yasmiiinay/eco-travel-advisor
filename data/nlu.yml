@@ -1,1 +1,365 @@
-# NLU training data (intents, entities, lookup tables, synonyms) — TO IMPLEMENT
+# NLU training data for the Eco-Travel Advisor.
+# Intents and entities match domain.yml exactly. Examples cover button payloads
+# (single-entity messages) and free text, plus typos, natural traveller phrases,
+# and out-of-scope inputs. Lookup tables + synonyms reinforce entity extraction
+# and normalise values (e.g. "Pariiis" -> "Paris", "me and my wife" -> "2").
+
+version: "3.1"
+
+nlu:
+
+# ===========================================================================
+# Small talk / control intents
+# ===========================================================================
+
+- intent: greet
+  examples: |
+    - hi
+    - hello
+    - hey
+    - good morning
+    - good afternoon
+    - hey there
+    - hello there
+    - hi advisor
+
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you
+    - see you later
+    - that's all thanks
+    - have a good day
+    - talk soon
+    - bye bye
+
+- intent: affirm
+  examples: |
+    - yes
+    - yeah
+    - yep
+    - correct
+    - that's right
+    - sounds good
+    - sure
+    - ok
+    - yes please
+    - exactly
+
+- intent: deny
+  examples: |
+    - no
+    - nope
+    - not really
+    - no thanks
+    - that's wrong
+    - not quite
+    - don't
+    - no that's not it
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot
+    - are you a real person
+    - am I talking to a human
+    - is this a chatbot
+    - are you human
+    - who are you
+
+- intent: plan_trip
+  examples: |
+    - I want to plan a trip
+    - help me plan a sustainable trip
+    - plan a trip
+    - I'd like to plan a holiday
+    - can you help me plan an eco-friendly trip
+    - let's plan a trip
+    - I want to go on a low carbon trip
+    - plan my travel
+    - I'm thinking about a green getaway
+    - help me organise a trip
+
+- intent: request_recommendations
+  examples: |
+    - show me the plan
+    - what do you recommend
+    - give me recommendations
+    - show me hotels and transport
+    - what are my options
+    - show me the results
+    - recommend something
+    - let's see the plan
+
+- intent: request_human
+  examples: |
+    - I want to talk to a human
+    - can I speak to a person
+    - connect me to an advisor
+    - I need a human advisor
+    - talk to a real agent
+    - hand me over to a person
+    - can a human help me
+    - I'd like to speak with a travel advisor
+    - get me a human
+
+- intent: go_back
+  examples: |
+    - go back
+    - back
+    - previous question
+    - take me back
+    - go to the previous step
+    - undo that
+    - back one step
+
+- intent: edit_answer
+  examples: |
+    - I want to change an answer
+    - edit my answer
+    - change my destination
+    - I made a mistake
+    - let me change something
+    - edit a previous answer
+    - I want to update my budget
+    - change my travellers
+
+- intent: reset_trip
+  examples: |
+    - reset
+    - start over
+    - start again
+    - reset the trip
+    - clear everything
+    - let's start from scratch
+    - begin again
+    - restart planning
+
+- intent: out_of_scope
+  examples: |
+    - what's the weather like
+    - tell me a joke
+    - what's the latest news
+    - who won the football
+    - what's the price of bitcoin
+    - can you write my homework
+    - recommend a movie
+    - do I need a visa
+    - what's your favourite song
+    - book me a taxi
+    - order me a pizza
+    - what time is it
+
+# ===========================================================================
+# inform — carries the slot entities (origin, destination, dates, travellers,
+# budget, sustainability preference). Covers button payloads, free text, typos
+# and natural phrases.
+# ===========================================================================
+
+- intent: inform
+  examples: |
+    - I want to travel from [London](origin) to [Paris](destination)
+    - I'm going from [Madrid](origin) to [Berlin](destination)
+    - travelling from [Rome](origin) to [Amsterdam](destination)
+    - from [Istanbul](origin) to [Copenhagen](destination)
+    - [London](origin) to [Berlin](destination)
+    - I'd like to go from [Manchester](origin) to [Paris](destination)
+    - from [Dublin](origin) to [Amsterdam](destination)
+    - I live in [Barcelona](origin)
+    - I'm travelling from [Vienna](origin)
+    - my origin is [Zurich](origin)
+    - starting from [Munich](origin)
+    - [London](origin)
+    - [Madrid](origin)
+    - [Rome](origin)
+    - [Istanbul](origin)
+    - I want to visit [Paris](destination)
+    - take me to [Berlin](destination)
+    - I'd love to go to [Amsterdam](destination)
+    - my destination is [Copenhagen](destination)
+    - [Paris](destination)
+    - [Berlin](destination)
+    - [Amsterdam](destination)
+    - [Copenhagen](destination)
+    - I want to go to [Pariiis]{"entity": "destination", "value": "Paris"}
+    - let's visit [Berln]{"entity": "destination", "value": "Berlin"}
+    - travelling to [Amsterdm]{"entity": "destination", "value": "Amsterdam"}
+    - I'd like [Copenhagn]{"entity": "destination", "value": "Copenhagen"}
+    - going to [Pariis]{"entity": "destination", "value": "Paris"}
+    - it's just [me]{"entity": "num_travellers", "value": "1"}
+    - [just me]{"entity": "num_travellers", "value": "1"}
+    - [me and my wife]{"entity": "num_travellers", "value": "2"}
+    - [my partner and I]{"entity": "num_travellers", "value": "2"}
+    - [my husband and I]{"entity": "num_travellers", "value": "2"}
+    - [the two of us]{"entity": "num_travellers", "value": "2"}
+    - [three of us]{"entity": "num_travellers", "value": "3"}
+    - [family of four]{"entity": "num_travellers", "value": "4"}
+    - there are [2](num_travellers) of us
+    - we are [3](num_travellers) people
+    - [4](num_travellers) travellers
+    - [two](num_travellers) people
+    - we want to travel [next month](travel_date)
+    - I'm planning to go [in July](travel_date)
+    - travelling [this weekend](travel_date)
+    - sometime [in early September](travel_date)
+    - [from 15 August to 20 August]{"entity": "travel_date", "value": "15 August to 20 August"}
+    - my dates are [flexible](travel_date)
+    - I'm on a [budget]{"entity": "budget", "value": "budget"}
+    - keep it [cheap]{"entity": "budget", "value": "budget"}
+    - a [mid-range]{"entity": "budget", "value": "mid"} budget
+    - something [comfortable]{"entity": "budget", "value": "comfort"}
+    - I want [luxury]{"entity": "budget", "value": "comfort"}
+    - my budget is [mid](budget)
+    - I care most about the [lowest carbon]{"entity": "sustainability_pref", "value": "low_carbon"}
+    - I want the [greenest]{"entity": "sustainability_pref", "value": "low_carbon"} option
+    - prefer [eco-certified]{"entity": "sustainability_pref", "value": "eco_certified"} hotels
+    - support the [local community]{"entity": "sustainability_pref", "value": "local_culture"}
+    - I'd like a [balanced](sustainability_pref) trip
+    - from [London](origin) to [Copenhagen](destination) for [2](num_travellers) people
+    - [me and my wife]{"entity": "num_travellers", "value": "2"} on a [budget]{"entity": "budget", "value": "budget"}
+
+# ===========================================================================
+# Lookup tables — reinforce entity extraction via the RegexFeaturizer
+# ===========================================================================
+
+- lookup: origin
+  examples: |
+    - London
+    - Manchester
+    - Edinburgh
+    - Dublin
+    - Brussels
+    - Madrid
+    - Barcelona
+    - Rome
+    - Munich
+    - Vienna
+    - Zurich
+    - Istanbul
+    - Paris
+    - Berlin
+    - Amsterdam
+    - Copenhagen
+
+- lookup: destination
+  examples: |
+    - Paris
+    - Berlin
+    - Amsterdam
+    - Copenhagen
+
+- lookup: sustainability_pref
+  examples: |
+    - lowest carbon
+    - low carbon
+    - greenest
+    - eco-certified
+    - eco certified
+    - local community
+    - local culture
+    - balanced
+
+- lookup: budget
+  examples: |
+    - budget
+    - cheap
+    - low budget
+    - mid
+    - mid-range
+    - moderate
+    - comfort
+    - comfortable
+    - luxury
+
+# ===========================================================================
+# Synonyms — normalise extracted entity values to canonical forms
+# ===========================================================================
+
+- synonym: Paris
+  examples: |
+    - Pariiis
+    - Pariis
+    - Pari
+    - paris
+
+- synonym: Berlin
+  examples: |
+    - Berln
+    - Berlim
+    - berlin
+
+- synonym: Amsterdam
+  examples: |
+    - Amsterdm
+    - Amsterdaam
+    - amsterdam
+
+- synonym: Copenhagen
+  examples: |
+    - Copenhagn
+    - Kopenhagen
+    - copenhagen
+
+- synonym: "1"
+  examples: |
+    - just me
+    - solo
+    - myself
+    - on my own
+    - alone
+
+- synonym: "2"
+  examples: |
+    - me and my wife
+    - me and my husband
+    - my partner and I
+    - my husband and I
+    - my wife and I
+    - the two of us
+    - couple
+    - two of us
+
+- synonym: "3"
+  examples: |
+    - three of us
+    - family of three
+
+- synonym: "4"
+  examples: |
+    - family of four
+    - four of us
+
+- synonym: budget
+  examples: |
+    - cheap
+    - low budget
+    - on a budget
+
+- synonym: mid
+  examples: |
+    - mid-range
+    - moderate
+
+- synonym: comfort
+  examples: |
+    - comfortable
+    - luxury
+    - high-end
+
+- synonym: low_carbon
+  examples: |
+    - lowest carbon
+    - low carbon
+    - greenest
+
+- synonym: eco_certified
+  examples: |
+    - eco-certified
+    - eco certified
+    - certified
+
+- synonym: local_culture
+  examples: |
+    - local community
+    - local culture
+    - community
