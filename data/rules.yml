@@ -81,3 +81,12 @@ rules:
     steps:
       - intent: goodbye
       - action: utter_goodbye
+
+  # 13. Re-show recommendations on request (e.g. "show me the options again")
+  - rule: Re-show recommendations on request
+    steps:
+      - intent: request_recommendations
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
