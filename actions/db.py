@@ -254,10 +254,18 @@ class HandoverLog(Base):
 # ---------------------------------------------------------------------------
 
 def _normalise_url(url: str) -> str:
-    """Neon sometimes provides a ``postgres://`` URL; SQLAlchemy expects
-    ``postgresql://``. Normalise without touching credentials."""
+    """Normalise the connection URL without touching credentials.
+
+    * Neon sometimes provides a ``postgres://`` URL; SQLAlchemy expects
+      ``postgresql://``.
+    * When no driver is specified, force the modern ``psycopg`` (v3) driver so
+      the URL works with the ``psycopg[binary]`` package, instead of SQLAlchemy
+      defaulting to the older ``psycopg2``.
+    """
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
     return url
 
 
