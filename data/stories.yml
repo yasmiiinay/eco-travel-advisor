@@ -1,1 +1,151 @@
-# Multi-turn dialogue stories — TO IMPLEMENT
+# Multi-turn dialogue stories for the Eco-Travel Advisor.
+# These teach TEDPolicy/MemoizationPolicy the conversational paths that the
+# single-turn rules cannot generalise: form interruptions and recoveries.
+# The control actions (clarify / edit / go-back / reset / handover) emit their
+# own responses inside actions.py, so these stories focus on the *flow*.
+# Aligned with domain.yml and rules.yml. Rasa 3.6.x compatible.
+
+version: "3.1"
+
+stories:
+
+  # ---- Baseline happy path (also covers the high-emission warning chain) ----
+  - story: happy path - full plan with carbon, recommendations and warning
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - active_loop: null
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
+
+  # ---- 1. Typo clarification accepted (e.g. "Pariiis" -> "Paris") ----
+  - story: destination typo clarified and accepted
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - slot_was_set:
+          - destination_guess: Paris
+      - intent: affirm
+      - action: action_clarify_destination
+      - slot_was_set:
+          - destination: Paris
+          - destination_guess: null
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 2. Typo clarification rejected (form re-asks destination) ----
+  - story: destination typo rejected then re-asked
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - slot_was_set:
+          - destination_guess: Berlin
+      - intent: deny
+      - action: action_clarify_destination
+      - slot_was_set:
+          - destination_guess: null
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 3. Out-of-scope question during the form, then recover ----
+  - story: out of scope during planning then resume
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: out_of_scope
+      - action: utter_out_of_scope
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 4. Edit a previous answer, then the form resumes ----
+  - story: edit destination after the plan and resume form
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - active_loop: null
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
+      - intent: edit_answer
+      - action: action_edit_answer
+      - slot_was_set:
+          - destination: null
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 5. Go back to the previous step during the form ----
+  - story: go back during planning then resume
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: go_back
+      - action: action_go_back
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 6. Reset the trip mid-form (action clears slots + ends the form) ----
+  - story: reset trip during planning
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: reset_trip
+      - action: action_reset_trip
+      - active_loop: null
+
+  # ---- 7. High-emission warning explicitly after recommendations ----
+  - story: plan then high-emission alternative offered
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - active_loop: null
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
+      - intent: affirm
+      - action: utter_carbon_disclaimer
+
+  # ---- 8. Human handover with full context, requested mid-form ----
+  - story: request human advisor during planning
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: request_human
+      - action: action_handover
+
+  # ---- 9. Ambiguous / incomplete answer -> ask to rephrase, then resume ----
+  - story: ambiguous answer during form then clarify
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: nlu_fallback
+      - action: utter_ask_rephrase
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # ---- 10. Natural traveller phrase handled inside the form ----
+  - story: natural traveller phrase fills num_travellers
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - intent: inform
+        entities:
+          - num_travellers: "2"
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
