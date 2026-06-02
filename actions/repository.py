@@ -341,12 +341,24 @@ def get_transport_options(
             "disclaimer": "Emissions and prices are estimates, not measured or bookable values.",
         })
 
-    options.sort(key=lambda o: o["estimated_emissions_kg_per_person"])
+    if options:
+        options.sort(key=lambda o: o["estimated_emissions_kg_per_person"])
+        source = "neondb" if (mode_source == "neondb" and factor_source == "neondb") else "json_fallback"
+        return options, source
 
-    source = "neondb" if (mode_source == "neondb" and factor_source == "neondb") else "json_fallback"
-    if not options:
-        source = "unavailable"
-    return options, source
+    # Last resort: the pre-computed curated routes table (covers all 15 origins).
+    curated, curated_source = _read_with_fallback(
+        db_fn=lambda: [_to_dict(r) for r in db.get_session().query(db.TransportOption)
+                       .filter(db.TransportOption.destination_id == destination_id,
+                               db.TransportOption.origin_city == origin["city"]).all()],
+        json_fn=lambda: [r for r in _load_seed("transport_option.json")
+                         if r["destination_id"] == destination_id
+                         and r["origin_city"].lower() == origin["city"].lower()],
+    )
+    if curated:
+        curated.sort(key=lambda o: o["estimated_emissions_kg_per_person"])
+        return curated, curated_source
+    return [], "unavailable"
 
 
 # ---------------------------------------------------------------------------
