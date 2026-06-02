@@ -1,8 +1,10 @@
 # NLU training data for the Eco-Travel Advisor.
 # Intents and entities match domain.yml exactly. Examples cover button payloads
 # (single-entity messages) and free text, plus typos, natural traveller phrases,
-# and out-of-scope inputs. Lookup tables + synonyms reinforce entity extraction
-# and normalise values (e.g. "Pariiis" -> "Paris", "me and my wife" -> "2").
+# and out-of-scope inputs. The set was expanded (~20-30 examples per intent,
+# focusing on the weaker control intents) after cross-validation showed the
+# original data was too small to generalise. None of these examples duplicate
+# tests/test_nlu_samples.yml, so the held-out evaluation stays honest.
 
 version: "3.1"
 
@@ -22,6 +24,16 @@ nlu:
     - hey there
     - hello there
     - hi advisor
+    - hello eco advisor
+    - hi, can you help me
+    - greetings
+    - hey, how's it going
+    - hello, I need some help
+    - hi there, ready to plan
+    - howdy
+    - hello again
+    - hi, good to meet you
+    - hey, I'm new here
 
 - intent: goodbye
   examples: |
@@ -33,6 +45,16 @@ nlu:
     - have a good day
     - talk soon
     - bye bye
+    - thanks, bye
+    - see you next time
+    - I'm finished, thanks
+    - take care
+    - cheers, bye
+    - that will be all
+    - thanks for the help, goodbye
+    - ok bye now
+    - speak later
+    - I'll head off now
 
 - intent: affirm
   examples: |
@@ -46,6 +68,16 @@ nlu:
     - ok
     - yes please
     - exactly
+    - definitely
+    - of course
+    - that's correct
+    - yes that's it
+    - please do
+    - sounds great
+    - perfect
+    - right
+    - confirmed
+    - yes go ahead
 
 - intent: deny
   examples: |
@@ -57,6 +89,16 @@ nlu:
     - not quite
     - don't
     - no that's not it
+    - no thank you
+    - that's not right
+    - I don't think so
+    - negative
+    - no way
+    - not that one
+    - incorrect
+    - please don't
+    - that isn't what I meant
+    - no, change it
 
 - intent: bot_challenge
   examples: |
@@ -66,6 +108,14 @@ nlu:
     - is this a chatbot
     - are you human
     - who are you
+    - are you a machine
+    - is this automated
+    - are you an AI
+    - am I speaking to a robot
+    - is anyone really there
+    - are you a live agent
+    - what are you exactly
+    - are you an assistant
 
 - intent: plan_trip
   examples: |
@@ -79,6 +129,18 @@ nlu:
     - plan my travel
     - I'm thinking about a green getaway
     - help me organise a trip
+    - I need to plan some travel
+    - can we start planning a holiday
+    - I'd like to book an eco trip
+    - help me plan where to go
+    - I want to arrange a city break
+    - let's get started on a trip
+    - plan a sustainable holiday for me
+    - I'm ready to plan my travels
+    - can you help me with trip planning
+    - start a new trip plan
+    - I want to travel somewhere green
+    - help me put a trip together
 
 - intent: request_recommendations
   examples: |
@@ -90,6 +152,20 @@ nlu:
     - show me the results
     - recommend something
     - let's see the plan
+    - what would you suggest
+    - show me the recommendations again
+    - can I see the options once more
+    - give me the suggestions
+    - what hotels do you recommend
+    - show me my eco options
+    - recommend hotels and transport for me
+    - bring up the plan again
+    - I'd like to see the recommendations
+    - what's the best option for me
+    - show the eco recommendations
+    - let me see what you found
+    - present the options please
+    - re-show my travel plan
 
 - intent: request_human
   examples: |
@@ -102,6 +178,17 @@ nlu:
     - can a human help me
     - I'd like to speak with a travel advisor
     - get me a human
+    - transfer me to a person
+    - I want to chat with a real advisor
+    - is there someone human I can talk to
+    - please connect me with an agent
+    - I need to speak to staff
+    - can you pass me to a human
+    - let me talk to a travel expert
+    - I'd rather deal with a person
+    - hand this over to an advisor
+    - connect me with customer support
+    - I want a real person to help
 
 - intent: go_back
   examples: |
@@ -112,6 +199,19 @@ nlu:
     - go to the previous step
     - undo that
     - back one step
+    - go back a step
+    - I want to go back
+    - can we go back
+    - return to the previous question
+    - step back please
+    - go back to the last one
+    - let me go back
+    - back to the previous answer
+    - rewind a step
+    - go one question back
+    - take me to the prior step
+    - go backwards
+    - back up a bit
 
 - intent: edit_answer
   examples: |
@@ -123,6 +223,20 @@ nlu:
     - edit a previous answer
     - I want to update my budget
     - change my travellers
+    - can I edit my answer
+    - I'd like to change my destination
+    - update my origin
+    - change the number of travellers
+    - I need to fix my answer
+    - let me update my budget
+    - modify my previous choice
+    - I want to correct something
+    - change my dates
+    - edit the destination please
+    - I entered the wrong city
+    - can I redo one of my answers
+    - update my sustainability preference
+    - I want to revise my budget
 
 - intent: reset_trip
   examples: |
@@ -134,6 +248,18 @@ nlu:
     - let's start from scratch
     - begin again
     - restart planning
+    - can we start over
+    - reset everything
+    - clear my answers
+    - start the whole thing again
+    - I want to restart
+    - forget this trip and restart
+    - wipe the trip
+    - let's reset and try again
+    - start a fresh trip
+    - clear it all and restart
+    - reset my trip planning
+    - throw this away and start new
 
 - intent: out_of_scope
   examples: |
@@ -149,6 +275,18 @@ nlu:
     - book me a taxi
     - order me a pizza
     - what time is it
+    - what's the stock market doing
+    - translate this for me
+    - play some music
+    - what's the meaning of life
+    - help me with my maths homework
+    - who is the president
+    - tell me about dinosaurs
+    - what's a good restaurant near me
+    - can you book a flight ticket directly
+    - set an alarm for me
+    - what's the population of France
+    - give me cooking tips
 
 # ===========================================================================
 # inform — carries the slot entities (origin, destination, dates, travellers,
@@ -165,10 +303,16 @@ nlu:
     - [London](origin) to [Berlin](destination)
     - I'd like to go from [Manchester](origin) to [Paris](destination)
     - from [Dublin](origin) to [Amsterdam](destination)
+    - we want to travel from [Munich](origin) to [Copenhagen](destination)
+    - planning a trip from [Vienna](origin) to [Paris](destination)
+    - from [Zurich](origin) over to [Berlin](destination)
     - I live in [Barcelona](origin)
     - I'm travelling from [Vienna](origin)
     - my origin is [Zurich](origin)
     - starting from [Munich](origin)
+    - I'm based in [Rome](origin)
+    - departing from [Brussels](origin)
+    - my starting point is [London](origin)
     - [London](origin)
     - [Madrid](origin)
     - [Rome](origin)
@@ -177,6 +321,9 @@ nlu:
     - take me to [Berlin](destination)
     - I'd love to go to [Amsterdam](destination)
     - my destination is [Copenhagen](destination)
+    - I'm heading to [Paris](destination)
+    - thinking of visiting [Berlin](destination)
+    - we'd like to see [Amsterdam](destination)
     - [Paris](destination)
     - [Berlin](destination)
     - [Amsterdam](destination)
@@ -186,6 +333,9 @@ nlu:
     - travelling to [Amsterdm]{"entity": "destination", "value": "Amsterdam"}
     - I'd like [Copenhagn]{"entity": "destination", "value": "Copenhagen"}
     - going to [Pariis]{"entity": "destination", "value": "Paris"}
+    - visiting [Parris]{"entity": "destination", "value": "Paris"}
+    - heading to [Berlim]{"entity": "destination", "value": "Berlin"}
+    - off to [Amsteram]{"entity": "destination", "value": "Amsterdam"}
     - it's just [me]{"entity": "num_travellers", "value": "1"}
     - [just me]{"entity": "num_travellers", "value": "1"}
     - [me and my wife]{"entity": "num_travellers", "value": "2"}
@@ -194,29 +344,40 @@ nlu:
     - [the two of us]{"entity": "num_travellers", "value": "2"}
     - [three of us]{"entity": "num_travellers", "value": "3"}
     - [family of four]{"entity": "num_travellers", "value": "4"}
+    - travelling [solo]{"entity": "num_travellers", "value": "1"}
+    - [my girlfriend and I]{"entity": "num_travellers", "value": "2"}
     - there are [2](num_travellers) of us
     - we are [3](num_travellers) people
     - [4](num_travellers) travellers
     - [two](num_travellers) people
+    - a group of [6](num_travellers)
     - we want to travel [next month](travel_date)
     - I'm planning to go [in July](travel_date)
     - travelling [this weekend](travel_date)
     - sometime [in early September](travel_date)
     - [from 15 August to 20 August]{"entity": "travel_date", "value": "15 August to 20 August"}
     - my dates are [flexible](travel_date)
+    - probably [next spring](travel_date)
+    - around [the end of October](travel_date)
     - I'm on a [budget]{"entity": "budget", "value": "budget"}
     - keep it [cheap]{"entity": "budget", "value": "budget"}
     - a [mid-range]{"entity": "budget", "value": "mid"} budget
     - something [comfortable]{"entity": "budget", "value": "comfort"}
     - I want [luxury]{"entity": "budget", "value": "comfort"}
     - my budget is [mid](budget)
+    - keep the cost [low budget]{"entity": "budget", "value": "budget"}
+    - I'd like a [moderate]{"entity": "budget", "value": "mid"} spend
     - I care most about the [lowest carbon]{"entity": "sustainability_pref", "value": "low_carbon"}
     - I want the [greenest]{"entity": "sustainability_pref", "value": "low_carbon"} option
     - prefer [eco-certified]{"entity": "sustainability_pref", "value": "eco_certified"} hotels
     - support the [local community]{"entity": "sustainability_pref", "value": "local_culture"}
     - I'd like a [balanced](sustainability_pref) trip
+    - go for [low carbon]{"entity": "sustainability_pref", "value": "low_carbon"} travel
+    - focus on [local culture]{"entity": "sustainability_pref", "value": "local_culture"}
     - from [London](origin) to [Copenhagen](destination) for [2](num_travellers) people
     - [me and my wife]{"entity": "num_travellers", "value": "2"} on a [budget]{"entity": "budget", "value": "budget"}
+    - travelling from [Madrid](origin) to [Amsterdam](destination) next month
+    - [Rome](origin) to [Paris](destination) for a [family of four]{"entity": "num_travellers", "value": "4"}
 
 # ===========================================================================
 # Lookup tables — reinforce entity extraction via the RegexFeaturizer
@@ -280,6 +441,7 @@ nlu:
     - Pariiis
     - Pariis
     - Pari
+    - Parris
     - paris
 
 - synonym: Berlin
@@ -292,6 +454,7 @@ nlu:
   examples: |
     - Amsterdm
     - Amsterdaam
+    - Amsteram
     - amsterdam
 
 - synonym: Copenhagen
@@ -315,6 +478,7 @@ nlu:
     - my partner and I
     - my husband and I
     - my wife and I
+    - my girlfriend and I
     - the two of us
     - couple
     - two of us
