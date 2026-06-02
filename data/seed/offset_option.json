@@ -1,0 +1,74 @@
+[
+  {
+    "offset_id": 1,
+    "destination_id": 1,
+    "provider_name": "Île-de-France Reforestation Fund (prototype)",
+    "project_type": "reforestation",
+    "estimated_cost_per_tonne": 18,
+    "verification_note": "Modelled on Gold Standard-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 2,
+    "destination_id": 1,
+    "provider_name": "EuroGrid Renewable Initiative (prototype)",
+    "project_type": "renewable_energy",
+    "estimated_cost_per_tonne": 14,
+    "verification_note": "Modelled on Verra/VCS-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 3,
+    "destination_id": 2,
+    "provider_name": "Brandenburg Peatland Restoration (prototype)",
+    "project_type": "peatland_restoration",
+    "estimated_cost_per_tonne": 22,
+    "verification_note": "Modelled on Gold Standard-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 4,
+    "destination_id": 2,
+    "provider_name": "EuroGrid Renewable Initiative (prototype)",
+    "project_type": "renewable_energy",
+    "estimated_cost_per_tonne": 14,
+    "verification_note": "Modelled on Verra/VCS-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 5,
+    "destination_id": 3,
+    "provider_name": "Dutch Coastal Rewilding Fund (prototype)",
+    "project_type": "reforestation",
+    "estimated_cost_per_tonne": 19,
+    "verification_note": "Modelled on Gold Standard-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 6,
+    "destination_id": 3,
+    "provider_name": "North Sea Wind Offset (prototype)",
+    "project_type": "renewable_energy",
+    "estimated_cost_per_tonne": 13,
+    "verification_note": "Modelled on Verra/VCS-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 7,
+    "destination_id": 4,
+    "provider_name": "Nordic Forest Carbon Project (prototype)",
+    "project_type": "reforestation",
+    "estimated_cost_per_tonne": 21,
+    "verification_note": "Modelled on Gold Standard-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  },
+  {
+    "offset_id": 8,
+    "destination_id": 4,
+    "provider_name": "Danish Offshore Wind Fund (prototype)",
+    "project_type": "renewable_energy",
+    "estimated_cost_per_tonne": 12,
+    "verification_note": "Modelled on Verra/VCS-style certification (illustrative, not verified).",
+    "disclaimer": "Prototype/curated data for an MSc assignment — not a live booking source."
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "mode": "flight",
+    "kg_co2e_per_passenger_km": 0.158,
+    "source_note": "Illustrative short-haul value in the range of published DEFRA/BEIS conversion factors.",
+    "placeholder_warning": "PLACEHOLDER — verify against an official DEFRA/ICAO source before citing in the report."
+  },
+  {
+    "mode": "train",
+    "kg_co2e_per_passenger_km": 0.035,
+    "source_note": "Illustrative average rail value; real figures vary widely by country grid and electrification.",
+    "placeholder_warning": "PLACEHOLDER — verify against an official DEFRA/ICAO source before citing in the report."
+  },
+  {
+    "mode": "coach",
+    "kg_co2e_per_passenger_km": 0.027,
+    "source_note": "Illustrative long-distance coach value; typically the lowest-emission motorised mode.",
+    "placeholder_warning": "PLACEHOLDER — verify against an official DEFRA/ICAO source before citing in the report."
+  },
+  {
+    "mode": "car",
+    "kg_co2e_per_passenger_km": 0.171,
+    "source_note": "Illustrative average petrol car value, single occupancy; per-person falls with car-sharing.",
+    "placeholder_warning": "PLACEHOLDER — verify against an official DEFRA/ICAO source before citing in the report."
+  },
+  {
+    "mode": "ferry",
+    "kg_co2e_per_passenger_km": 0.115,
+    "source_note": "Illustrative foot-passenger ferry value; varies strongly by vessel and occupancy.",
+    "placeholder_warning": "PLACEHOLDER — verify against an official DEFRA/ICAO source before citing in the report."
+  }
+]

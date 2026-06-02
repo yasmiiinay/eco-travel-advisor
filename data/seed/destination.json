@@ -1,0 +1,62 @@
+[
+  {
+    "destination_id": 1,
+    "city": "Paris",
+    "country": "France",
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "description": "France's capital, dense and highly walkable with an extensive metro and a growing low-emission zone.",
+    "sustainability_summary": "Strong rail links from across Europe, expanding cycle network and car-restricted central districts make low-carbon visits realistic.",
+    "average_daily_budget": 120,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "very high"
+  },
+  {
+    "destination_id": 2,
+    "city": "Berlin",
+    "country": "Germany",
+    "latitude": 52.52,
+    "longitude": 13.405,
+    "description": "Germany's capital, spacious and bike-friendly with a comprehensive U-Bahn/S-Bahn network.",
+    "sustainability_summary": "Excellent public transport, abundant green space and a mature second-hand/repair culture support low-impact stays.",
+    "average_daily_budget": 95,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 3,
+    "city": "Amsterdam",
+    "country": "Netherlands",
+    "latitude": 52.3676,
+    "longitude": 4.9041,
+    "description": "A compact canal city where cycling is the dominant mode of transport.",
+    "sustainability_summary": "World-leading cycling infrastructure and frequent international rail make car-free, low-carbon travel the default.",
+    "average_daily_budget": 130,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "very high"
+  },
+  {
+    "destination_id": 4,
+    "city": "Copenhagen",
+    "country": "Denmark",
+    "latitude": 55.6761,
+    "longitude": 12.5683,
+    "description": "Denmark's capital, consistently ranked among the world's most sustainable cities.",
+    "sustainability_summary": "Carbon-neutral city ambitions, district heating, harbour swimming and a cycling-first design make it a benchmark eco-destination.",
+    "average_daily_budget": 150,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  }
+]

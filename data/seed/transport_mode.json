@@ -1,0 +1,52 @@
+[
+  {
+    "mode": "flight",
+    "avg_speed_kmh": 700,
+    "overhead_hours": 2.5,
+    "base_price_eur": 60,
+    "price_per_km_eur": 0.12,
+    "min_recommended_distance_km": 300,
+    "supports_international": true,
+    "notes": "Door-to-door overhead reflects check-in/security/transfer; flights only recommended for longer trips."
+  },
+  {
+    "mode": "train",
+    "avg_speed_kmh": 140,
+    "overhead_hours": 0.5,
+    "base_price_eur": 20,
+    "price_per_km_eur": 0.2,
+    "min_recommended_distance_km": 0,
+    "supports_international": true,
+    "notes": "Effective average including stops; usually the best low-carbon option for medium distances."
+  },
+  {
+    "mode": "coach",
+    "avg_speed_kmh": 75,
+    "overhead_hours": 0.3,
+    "base_price_eur": 10,
+    "price_per_km_eur": 0.07,
+    "min_recommended_distance_km": 0,
+    "supports_international": true,
+    "notes": "Lowest motorised emissions and cheapest, but slowest."
+  },
+  {
+    "mode": "car",
+    "avg_speed_kmh": 95,
+    "overhead_hours": 0.2,
+    "base_price_eur": 0,
+    "price_per_km_eur": 0.2,
+    "min_recommended_distance_km": 0,
+    "supports_international": true,
+    "notes": "Single-occupancy petrol car; per-person emissions and cost fall with car-sharing."
+  },
+  {
+    "mode": "ferry",
+    "avg_speed_kmh": 40,
+    "overhead_hours": 1.0,
+    "base_price_eur": 25,
+    "price_per_km_eur": 0.09,
+    "min_recommended_distance_km": 0,
+    "supports_international": true,
+    "notes": "Only relevant for sea-crossing routes; offered selectively."
+  }
+]

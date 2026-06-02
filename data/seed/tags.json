@@ -1,0 +1,74 @@
+[
+  {
+    "tag_id": 1,
+    "tag_name": "eco_certified",
+    "category": "certification",
+    "description": "Holds a recognised environmental certification (e.g. Green Key, EU Ecolabel)."
+  },
+  {
+    "tag_id": 2,
+    "tag_name": "renewable_energy",
+    "category": "energy",
+    "description": "Powered partly or wholly by renewable energy sources."
+  },
+  {
+    "tag_id": 3,
+    "tag_name": "low_water_usage",
+    "category": "resource",
+    "description": "Active water-conservation measures in place."
+  },
+  {
+    "tag_id": 4,
+    "tag_name": "plastic_free",
+    "category": "waste",
+    "description": "Eliminates or strongly reduces single-use plastics."
+  },
+  {
+    "tag_id": 5,
+    "tag_name": "locally_sourced_food",
+    "category": "food",
+    "description": "Serves locally sourced and seasonal food."
+  },
+  {
+    "tag_id": 6,
+    "tag_name": "public_transport_access",
+    "category": "transport",
+    "description": "Easily reachable by public transport; reduces car dependence."
+  },
+  {
+    "tag_id": 7,
+    "tag_name": "locally_owned",
+    "category": "community",
+    "description": "Owned or operated by local community members."
+  },
+  {
+    "tag_id": 8,
+    "tag_name": "supports_local_culture",
+    "category": "community",
+    "description": "Promotes local heritage, artisans and culture."
+  },
+  {
+    "tag_id": 9,
+    "tag_name": "wheelchair_accessible",
+    "category": "accessibility",
+    "description": "Step-free or wheelchair-accessible facilities."
+  },
+  {
+    "tag_id": 10,
+    "tag_name": "carbon_neutral",
+    "category": "carbon",
+    "description": "Certified or self-declared carbon-neutral operations."
+  },
+  {
+    "tag_id": 11,
+    "tag_name": "nature_based",
+    "category": "nature",
+    "description": "Focused on nature, green space or biodiversity."
+  },
+  {
+    "tag_id": 12,
+    "tag_name": "fair_wage",
+    "category": "community",
+    "description": "Commits to fair wages and decent working conditions."
+  }
+]

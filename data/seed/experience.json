@@ -1,0 +1,178 @@
+[
+  {
+    "experience_id": 1,
+    "destination_id": 1,
+    "name": "Le Marais Heritage Walking Tour",
+    "type": "cultural",
+    "local_community_score": 9.0,
+    "estimated_price": 25,
+    "sustainability_tags": [
+      "supports_local_culture",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "accessibility_notes": "Mostly flat paved streets; step-free; suitable for wheelchairs.",
+    "description": "Small-group walk through the historic Marais led by neighbourhood guides, focusing on local artisans and heritage."
+  },
+  {
+    "experience_id": 2,
+    "destination_id": 1,
+    "name": "Seine Kayak & River Clean-up",
+    "type": "nature",
+    "local_community_score": 7.5,
+    "estimated_price": 40,
+    "sustainability_tags": [
+      "nature_based",
+      "plastic_free"
+    ],
+    "accessibility_notes": "Requires moderate mobility to enter/exit kayak; not wheelchair accessible.",
+    "description": "Guided kayaking session combined with light litter collection along the Seine."
+  },
+  {
+    "experience_id": 3,
+    "destination_id": 1,
+    "name": "Organic Market Cooking Class",
+    "type": "food",
+    "local_community_score": 8.5,
+    "estimated_price": 55,
+    "sustainability_tags": [
+      "locally_sourced_food",
+      "supports_local_culture",
+      "fair_wage"
+    ],
+    "accessibility_notes": "Step-free venue; accessible kitchen stations available on request.",
+    "description": "Shop a local organic market then cook a seasonal French meal with a resident chef."
+  },
+  {
+    "experience_id": 4,
+    "destination_id": 2,
+    "name": "Street Art & History Bike Tour",
+    "type": "cultural",
+    "local_community_score": 8.8,
+    "estimated_price": 30,
+    "sustainability_tags": [
+      "supports_local_culture",
+      "locally_owned",
+      "nature_based"
+    ],
+    "accessibility_notes": "Cycling tour; adapted/hand-cycles available with advance notice.",
+    "description": "Locally guided bike tour covering Berlin's street-art scene and divided-city history."
+  },
+  {
+    "experience_id": 5,
+    "destination_id": 2,
+    "name": "Tempelhofer Feld Urban Nature Walk",
+    "type": "nature",
+    "local_community_score": 7.0,
+    "estimated_price": 0,
+    "sustainability_tags": [
+      "nature_based",
+      "public_transport_access"
+    ],
+    "accessibility_notes": "Flat former runway; fully wheelchair accessible.",
+    "description": "Self- or volunteer-guided walk across Berlin's iconic former airfield turned public park."
+  },
+  {
+    "experience_id": 6,
+    "destination_id": 2,
+    "name": "Refugee-led Kitchen Experience",
+    "type": "community",
+    "local_community_score": 9.5,
+    "estimated_price": 45,
+    "sustainability_tags": [
+      "supports_local_culture",
+      "fair_wage",
+      "locally_sourced_food"
+    ],
+    "accessibility_notes": "Step-free venue; accessible facilities.",
+    "description": "Shared meal cooked and hosted by a refugee-led social enterprise supporting local integration."
+  },
+  {
+    "experience_id": 7,
+    "destination_id": 3,
+    "name": "Jordaan Canal Heritage Walk",
+    "type": "cultural",
+    "local_community_score": 8.7,
+    "estimated_price": 22,
+    "sustainability_tags": [
+      "supports_local_culture",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "accessibility_notes": "Mostly flat; some cobblestones; largely wheelchair accessible.",
+    "description": "Neighbourhood-led stroll through the Jordaan's canals, courtyards and independent shops."
+  },
+  {
+    "experience_id": 8,
+    "destination_id": 3,
+    "name": "Vondelpark & Urban Ecology Tour",
+    "type": "nature",
+    "local_community_score": 7.2,
+    "estimated_price": 18,
+    "sustainability_tags": [
+      "nature_based",
+      "public_transport_access"
+    ],
+    "accessibility_notes": "Paved paths; fully wheelchair accessible.",
+    "description": "Guided walk exploring the biodiversity and water management of Amsterdam's best-known park."
+  },
+  {
+    "experience_id": 9,
+    "destination_id": 3,
+    "name": "Repair Café Workshop",
+    "type": "community",
+    "local_community_score": 9.2,
+    "estimated_price": 12,
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "fair_wage"
+    ],
+    "accessibility_notes": "Ground-floor accessible venue.",
+    "description": "Hands-on session at a community repair café, learning to mend clothing and small electronics."
+  },
+  {
+    "experience_id": 10,
+    "destination_id": 4,
+    "name": "Nyhavn & Harbour Heritage Walk",
+    "type": "cultural",
+    "local_community_score": 8.4,
+    "estimated_price": 28,
+    "sustainability_tags": [
+      "supports_local_culture",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "accessibility_notes": "Flat harbourside paths; wheelchair accessible.",
+    "description": "Locally guided harbour walk covering Copenhagen's maritime heritage and green-harbour transformation."
+  },
+  {
+    "experience_id": 11,
+    "destination_id": 4,
+    "name": "Amager Nature Reserve Cycle",
+    "type": "nature",
+    "local_community_score": 7.6,
+    "estimated_price": 35,
+    "sustainability_tags": [
+      "nature_based",
+      "renewable_energy"
+    ],
+    "accessibility_notes": "Cycling tour; adapted cycles available on request.",
+    "description": "Guided ride through Amager's wetlands and meadows just minutes from the city centre."
+  },
+  {
+    "experience_id": 12,
+    "destination_id": 4,
+    "name": "Community Farm-to-Table Dinner",
+    "type": "community",
+    "local_community_score": 9.3,
+    "estimated_price": 60,
+    "sustainability_tags": [
+      "locally_sourced_food",
+      "fair_wage",
+      "supports_local_culture"
+    ],
+    "accessibility_notes": "Step-free venue; accessible facilities.",
+    "description": "Seasonal communal dinner sourced from a local organic farm cooperative."
+  }
+]
