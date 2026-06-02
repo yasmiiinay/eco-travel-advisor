@@ -1,1 +1,73 @@
-# Rasa NLU pipeline + Core policies — TO IMPLEMENT (Step: config)
+# Rasa configuration for the Eco-Travel Advisor.
+# Small, English-only domain. CPU-friendly pipeline (no spaCy / no transformer
+# downloads) so it trains quickly on a laptop or in Colab. Climatiq is not used
+# here at all — NLU and dialogue training are fully independent of any API.
+
+recipe: default.v1
+assistant_id: eco_travel_advisor
+language: en
+
+# ---------------------------------------------------------------------------
+# NLU pipeline — turns user text into intents + entities
+# ---------------------------------------------------------------------------
+pipeline:
+  # Split text into tokens. Whitespace tokenisation is light and dependency-free.
+  - name: WhitespaceTokenizer
+
+  # Match regex/lookup patterns (e.g. city lists, traveller phrases) and feed
+  # those matches as features — helps recognise destinations and numbers.
+  - name: RegexFeaturizer
+
+  # Adds part-of-speech / shape features (capitalisation, prefixes, suffixes),
+  # which improves entity extraction for city names on a small dataset.
+  - name: LexicalSyntacticFeaturizer
+
+  # Bag-of-words features at the word level.
+  - name: CountVectorsFeaturizer
+
+  # Character n-gram features. These give robustness to typos and spelling
+  # variants (e.g. "Pariiis", "Berln") at the NLU level, complementing the
+  # fuzzy matching already in repository.py.
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 1
+    max_ngram: 4
+
+  # The main intent classifier + entity extractor. DIET is a single, efficient
+  # model that handles both on CPU. constrain_similarities improves confidence
+  # calibration, which makes the fallback threshold below behave sensibly.
+  - name: DIETClassifier
+    epochs: 100
+    constrain_similarities: true
+
+  # Maps synonyms declared in nlu.yml to canonical values
+  # (e.g. "NYC" -> "New York", or transport spelling variants).
+  - name: EntitySynonymMapper
+
+  # Flags low-confidence predictions as the special nlu_fallback intent so the
+  # clarification / fallback rule can take over instead of guessing.
+  - name: FallbackClassifier
+    threshold: 0.5          # below 0.5 confidence -> nlu_fallback
+    ambiguity_threshold: 0.1 # also fall back if top two intents are too close
+
+# ---------------------------------------------------------------------------
+# Core policies — decide the next action / drive the dialogue
+# ---------------------------------------------------------------------------
+policies:
+  # Recall exact action sequences seen in training stories (the happy paths).
+  - name: MemoizationPolicy
+
+  # Runs rules and the form/slot-filling loop, handles the FallbackClassifier
+  # output and single-turn behaviours (greet, out-of-scope, handover).
+  - name: RulePolicy
+    core_fallback_threshold: 0.4
+    core_fallback_action_name: action_default_fallback
+    enable_fallback_prediction: true
+
+  # Generalises to unseen multi-turn paths (e.g. the user edits a slot or
+  # changes their sustainability preference mid-conversation) — the adaptive,
+  # less scripted part of the dialogue.
+  - name: TEDPolicy
+    max_history: 5
+    epochs: 100
+    constrain_similarities: true
