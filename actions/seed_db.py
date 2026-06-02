@@ -22,7 +22,7 @@ Safety
 Run it
 ------
     cd eco-travel-advisor
-    pip install -r requirements.txt          # needs sqlalchemy, psycopg, python-dotenv
+    pip install -r requirements.txt          # needs sqlalchemy, psycopg2, python-dotenv
     python actions/seed_db.py
 """
 
@@ -158,7 +158,7 @@ def main() -> None:
         fail(
             f"{db.ENV_VAR} is not set.\n"
             f"  Create a local .env at the project root containing:\n"
-            f"      {db.ENV_VAR}=postgresql+psycopg://USER:PASSWORD@HOST/DB?sslmode=require\n"
+            f"      {db.ENV_VAR}=postgresql://USER:PASSWORD@HOST/DB?sslmode=require\n"
             f"  (Never commit .env — it is already in .gitignore.)"
         )
 

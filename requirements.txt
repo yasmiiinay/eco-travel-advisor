@@ -1,1 +1,19 @@
-# Python deps — TO IMPLEMENT (rasa, sqlalchemy, psycopg, requests, ...)
+# ---------------------------------------------------------------------------
+# Single environment for the whole project.
+# REQUIRES Python 3.10 (Rasa 3.6.x does not support 3.11/3.12).
+#
+#   python3.10 -m venv .venv
+#   source .venv/bin/activate
+#   pip install -r requirements.txt
+#
+# Notes
+# -----
+# * SQLAlchemy is intentionally NOT pinned here: Rasa pins a compatible version
+#   (<2.0) and our actions/db.py is written in classic style, so it works on it.
+# * We use the psycopg2 driver (not psycopg v3) because it is compatible with the
+#   SQLAlchemy version Rasa pins. Use a plain postgresql:// connection URL.
+# ---------------------------------------------------------------------------
+rasa==3.6.20
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+requests==2.32.3

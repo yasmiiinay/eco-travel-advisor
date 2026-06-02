@@ -43,7 +43,7 @@ from sqlalchemy.pool import NullPool
 # ---------------------------------------------------------------------------
 
 # Name of the env var holding the NeonDB/PostgreSQL connection string, e.g.
-#   postgresql+psycopg://USER:PASSWORD@HOST/DB?sslmode=require
+#   postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 ENV_VAR = "NEON_DATABASE_URL"
 
 # Short connection timeout so a sleeping Neon free-tier instance fails fast and
@@ -257,16 +257,13 @@ class HandoverLog(Base):
 def _normalise_url(url: str) -> str:
     """Normalise the connection URL without touching credentials.
 
-    * Neon sometimes provides a ``postgres://`` URL; SQLAlchemy expects
-      ``postgresql://``.
-    * When no driver is specified, force the modern ``psycopg`` (v3) driver so
-      the URL works with the ``psycopg[binary]`` package, instead of SQLAlchemy
-      defaulting to the older ``psycopg2``.
+    Neon sometimes provides a ``postgres://`` URL; SQLAlchemy expects
+    ``postgresql://``. We rely on the default ``psycopg2`` driver, which is
+    compatible with both the SQLAlchemy version pinned by Rasa and newer ones,
+    so no explicit driver suffix is added.
     """
     if url.startswith("postgres://"):
         url = "postgresql://" + url[len("postgres://"):]
-    if url.startswith("postgresql://"):
-        url = "postgresql+psycopg://" + url[len("postgresql://"):]
     return url
 
 

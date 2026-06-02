@@ -26,7 +26,7 @@ and `distance x factor` matches the stored emissions.
 
 `actions/db.py` defines 13 SQLAlchemy ORM tables mapping one-to-one to the seed files, plus two
 association tables (`hotel_tag`, `experience_tag`) and two operational tables (`trip`,
-`handover_log`). The module is import-safe (no connection on import), forces the `psycopg` v3
+`handover_log`). The module is import-safe (no connection on import), uses the `psycopg2`
 driver, applies a short connection timeout for Neon cold-starts, and uses ORM/bound parameters for
 SQL-injection safety.
 
