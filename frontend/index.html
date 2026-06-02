@@ -1,1 +1,54 @@
-<!-- Responsive chat UI (buttons/chips/cards/calendar/dropdown) — TO IMPLEMENT -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eco-Travel Advisor — UX Preview</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Standalone UX preview. Runs entirely in the browser on static, seed-mirrored
+       sample data. It is structured so the same flow can later be driven by the
+       Rasa REST channel instead of the local state machine in app.js. -->
+  <div class="app" role="application" aria-label="Eco-Travel Advisor assistant">
+
+    <header class="app__header">
+      <div class="brand">
+        <span class="brand__leaf" aria-hidden="true">🌿</span>
+        <div>
+          <h1 class="brand__title">Eco-Travel Advisor</h1>
+          <p class="brand__tagline">Plan a lower-carbon trip</p>
+        </div>
+      </div>
+      <div class="trip-controls" role="toolbar" aria-label="Trip controls">
+        <button type="button" id="btn-back" class="ctrl" disabled>← Back</button>
+        <button type="button" id="btn-edit" class="ctrl" disabled>Edit answer</button>
+        <button type="button" id="btn-reset" class="ctrl">Reset trip</button>
+        <button type="button" id="btn-handover" class="ctrl ctrl--accent">Talk to a human</button>
+      </div>
+    </header>
+
+    <!-- Progress summary of collected answers (updates as the user chooses) -->
+    <section class="summary" id="summary" aria-label="Your trip so far" hidden>
+      <ul class="summary__list" id="summary-list"></ul>
+    </section>
+
+    <!-- Conversation transcript -->
+    <main class="chat" id="chat" role="log" aria-live="polite" aria-label="Conversation"></main>
+
+    <!-- Dynamic interaction dock: holds the buttons/chips/cards/calendar for the
+         current step. The free-text row underneath is always available. -->
+    <section class="dock" id="dock" aria-label="Choices for the current step"></section>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <label class="visually-hidden" for="text-input">Type a message</label>
+      <input type="text" id="text-input" class="composer__input"
+             placeholder="Or type here… (e.g. “Pariiis”, “me and my wife”)" />
+      <button type="submit" class="composer__send" aria-label="Send message">Send</button>
+    </form>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
