@@ -1,1 +1,83 @@
-# Deterministic rules (greet, fallback, out-of-scope, handover, form) — TO IMPLEMENT
+# Deterministic rules for the Eco-Travel Advisor.
+# These handle single-turn behaviours and the form lifecycle. Multi-turn and
+# adaptive paths (typo clarification, editing then resuming, preference changes)
+# are left to stories.yml. Aligned with domain.yml intents, responses, the
+# trip_planning_form, and the custom action names. Rasa 3.6.x compatible.
+
+version: "3.1"
+
+rules:
+
+  # 1. Greet
+  - rule: Greet the user
+    steps:
+      - intent: greet
+      - action: utter_greet
+
+  # 2. Start the trip planning form when the user wants to plan a trip
+  - rule: Activate trip planning form
+    steps:
+      - intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # 3 & 4. Submit the form, then run the carbon estimate, recommendations,
+  # high-emission alert, and the carbon disclaimer.
+  - rule: Submit trip planning form and present the plan
+    condition:
+      - active_loop: trip_planning_form
+    steps:
+      - action: trip_planning_form
+      - active_loop: null
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
+
+  # 5. Out-of-scope handling
+  - rule: Handle out-of-scope questions
+    steps:
+      - intent: out_of_scope
+      - action: utter_out_of_scope
+
+  # 6. Fallback / clarification on low NLU confidence
+  - rule: Ask the user to rephrase on low confidence
+    steps:
+      - intent: nlu_fallback
+      - action: utter_ask_rephrase
+
+  # 7. Human handover (packages full context in action_handover)
+  - rule: Hand over to a human advisor
+    steps:
+      - intent: request_human
+      - action: action_handover
+
+  # 8. Reset the trip
+  - rule: Reset the trip
+    steps:
+      - intent: reset_trip
+      - action: action_reset_trip
+
+  # 9. Go back to the previous question
+  - rule: Go back a step
+    steps:
+      - intent: go_back
+      - action: action_go_back
+
+  # 10. Edit a previous answer
+  - rule: Edit a previous answer
+    steps:
+      - intent: edit_answer
+      - action: action_edit_answer
+
+  # 11. Bot challenge
+  - rule: Answer bot challenge
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
+
+  # 12. Goodbye
+  - rule: Say goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
