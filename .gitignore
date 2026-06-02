@@ -6,3 +6,5 @@ models/
 .rasa/
 *.tar.gz
 .ipynb_checkpoints/
+.venv/
+*.env
