@@ -36,6 +36,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.pool import NullPool
 
 # ---------------------------------------------------------------------------
 # Configuration (no credentials hard-coded — read from the environment only)
@@ -288,9 +289,13 @@ def get_engine():
                 f"{ENV_VAR} is not set. Set it in your local .env (never commit it) "
                 f"before connecting to NeonDB. The chatbot can still run on JSON fallback."
             )
+        # NullPool: open a fresh connection per use and close it immediately.
+        # Neon (serverless) recycles idle connections, which breaks a normal
+        # pooled connection on reuse ("server conn crashed?"). Not pooling avoids
+        # this entirely and suits a low-traffic prototype.
         _engine = create_engine(
             _normalise_url(raw),
-            pool_pre_ping=True,                     # drop dead connections (Neon sleep)
+            poolclass=NullPool,
             connect_args={"connect_timeout": CONNECT_TIMEOUT_SECONDS},
         )
     return _engine
