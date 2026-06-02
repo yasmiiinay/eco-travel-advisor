@@ -1,1 +1,82 @@
-# Rasa dialogue (Core) test stories — TO IMPLEMENT
+# Held-out Core (dialogue) test stories for the Eco-Travel Advisor.
+# End-to-end format: each turn gives the *user text* so the test exercises the
+# full pipeline (NLU + dialogue policies), then asserts the predicted action.
+# These are NEW conversations with unseen wording - not copies of data/stories.yml.
+# Run with:  rasa test core --stories tests/test_stories.yml
+#
+# Note: rasa test core checks predicted *action names*; custom action side-effects
+# (e.g. slots set inside the form) are validated interactively (rasa shell) or with
+# the action server running. These stories therefore focus on policy-predictable
+# paths: greet, scope guard, controls, handover and the recommendation chain.
+
+version: "3.1"
+
+stories:
+
+  - story: held-out greet then bot challenge
+    steps:
+      - user: |
+          good evening
+        intent: greet
+      - action: utter_greet
+      - user: |
+          wait, is there a human behind this
+        intent: bot_challenge
+      - action: utter_iamabot
+
+  - story: held-out out-of-scope then start planning
+    steps:
+      - user: |
+          can you tell me tonight's lottery numbers
+        intent: out_of_scope
+      - action: utter_out_of_scope
+      - user: |
+          ok let's organise an eco getaway
+        intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  - story: held-out human handover
+    steps:
+      - user: |
+          put me through to a real travel agent please
+        intent: request_human
+      - action: action_handover
+
+  - story: held-out reset trip
+    steps:
+      - user: |
+          scrap all that and begin from zero
+        intent: reset_trip
+      - action: action_reset_trip
+
+  - story: held-out go back
+    steps:
+      - user: |
+          actually take me one step back
+        intent: go_back
+      - action: action_go_back
+
+  - story: held-out edit a previous answer
+    steps:
+      - user: |
+          I'd like to amend my chosen city
+        intent: edit_answer
+      - action: action_edit_answer
+
+  - story: held-out recommendation request with high-emission chain
+    steps:
+      - user: |
+          could you show me the options once more
+        intent: request_recommendations
+      - action: action_estimate_carbon
+      - action: action_recommend_plan
+      - action: action_high_emission_alert
+      - action: utter_carbon_disclaimer
+
+  - story: held-out goodbye
+    steps:
+      - user: |
+          that's everything, cheers
+        intent: goodbye
+      - action: utter_goodbye

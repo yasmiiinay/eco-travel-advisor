@@ -1,1 +1,115 @@
-# NLU example test set — TO IMPLEMENT
+# Held-out NLU test set for the Eco-Travel Advisor.
+# These examples are deliberately *unseen* — different wording from data/nlu.yml —
+# so evaluating the trained model on them measures generalisation, not memorisation.
+# Run with:  rasa test nlu --nlu tests/test_nlu_samples.yml
+# Includes the required edge cases: destination typos and natural traveller phrases.
+
+version: "3.1"
+
+nlu:
+
+- intent: greet
+  examples: |
+    - good evening
+    - hiya
+    - morning advisor
+    - hey, hello again
+
+- intent: goodbye
+  examples: |
+    - that's everything, cheers
+    - catch you later
+    - I'm done here
+    - gotta go now
+
+- intent: affirm
+  examples: |
+    - absolutely
+    - go for it
+    - that works for me
+    - yep that's the one
+
+- intent: deny
+  examples: |
+    - nah
+    - definitely not
+    - I'd rather not
+    - that's incorrect
+
+- intent: bot_challenge
+  examples: |
+    - wait, are you an actual person
+    - is there a human behind this
+    - am I chatting with software
+
+- intent: plan_trip
+  examples: |
+    - I'm thinking of a green holiday
+    - help me sort a low-impact trip
+    - I'd like to arrange some sustainable travel
+    - let's organise an eco getaway
+
+- intent: inform
+  examples: |
+    - I'll set off from [Edinburgh](origin) heading to [Berlin](destination)
+    - coming from [Brussels](origin)
+    - the trip is to [Amsterdam](destination)
+    - going over to [Pariiis]{"entity": "destination", "value": "Paris"}
+    - I think it's [Berln]{"entity": "destination", "value": "Berlin"}
+    - heading to [Amsterdm]{"entity": "destination", "value": "Amsterdam"}
+    - flying into [Copenhagn]{"entity": "destination", "value": "Copenhagen"}
+    - another spelling [Copenhaagen]{"entity": "destination", "value": "Copenhagen"}
+    - [me and my wife]{"entity": "num_travellers", "value": "2"} will travel
+    - it's just [my partner and I]{"entity": "num_travellers", "value": "2"}
+    - we're a [family of four]{"entity": "num_travellers", "value": "4"}
+    - there will be [three of us]{"entity": "num_travellers", "value": "3"}
+    - [5](num_travellers) of us are going
+    - departing [in late August](travel_date)
+    - sometime around [mid-December](travel_date)
+    - keep the spend [low]{"entity": "budget", "value": "budget"}
+    - we'd like something [high-end]{"entity": "budget", "value": "comfort"}
+    - I mainly care about [cutting emissions]{"entity": "sustainability_pref", "value": "low_carbon"}
+    - prefer [community-focused]{"entity": "sustainability_pref", "value": "local_culture"} options
+    - go with [certified eco]{"entity": "sustainability_pref", "value": "eco_certified"} stays
+
+- intent: request_recommendations
+  examples: |
+    - show me what you'd suggest
+    - what are the choices
+    - let's see those options
+    - display the plan please
+
+- intent: request_human
+  examples: |
+    - put me through to a real agent
+    - I'd prefer to speak to a person
+    - can a consultant help me
+    - escalate this to a human
+
+- intent: go_back
+  examples: |
+    - actually, one step back
+    - return to the last question
+    - let me redo the previous bit
+
+- intent: edit_answer
+  examples: |
+    - I want to amend my chosen city
+    - change the number of people
+    - fix my budget choice
+    - update a previous answer
+
+- intent: reset_trip
+  examples: |
+    - scrap it and start fresh
+    - wipe everything and restart
+    - let's begin completely again
+    - clear my whole trip
+
+- intent: out_of_scope
+  examples: |
+    - what's tonight's football score
+    - recommend a good series to watch
+    - convert dollars to euros for me
+    - what's the capital of Japan
+    - tell me a riddle
