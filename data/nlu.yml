@@ -374,6 +374,36 @@ nlu:
     - I'd like a [balanced](sustainability_pref) trip
     - go for [low carbon]{"entity": "sustainability_pref", "value": "low_carbon"} travel
     - focus on [local culture]{"entity": "sustainability_pref", "value": "local_culture"}
+    - on a [tight budget]{"entity": "budget", "value": "budget"}
+    - somewhere [affordable]{"entity": "budget", "value": "budget"}
+    - keep it [economical]{"entity": "budget", "value": "budget"}
+    - a [shoestring]{"entity": "budget", "value": "budget"} trip
+    - [mid-priced]{"entity": "budget", "value": "mid"} is fine
+    - a [standard]{"entity": "budget", "value": "mid"} budget
+    - somewhere in the [middle]{"entity": "budget", "value": "mid"}
+    - go [premium]{"entity": "budget", "value": "comfort"}
+    - I'd like something [upscale]{"entity": "budget", "value": "comfort"}
+    - a [lavish]{"entity": "budget", "value": "comfort"} stay
+    - I want to [minimise my footprint]{"entity": "sustainability_pref", "value": "low_carbon"}
+    - prioritise [low emissions]{"entity": "sustainability_pref", "value": "low_carbon"}
+    - choose the [most eco-friendly]{"entity": "sustainability_pref", "value": "low_carbon"} route
+    - I prefer [green-certified]{"entity": "sustainability_pref", "value": "eco_certified"} places
+    - stay somewhere [environmentally certified]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - help [local people]{"entity": "sustainability_pref", "value": "local_culture"}
+    - support [small local businesses]{"entity": "sustainability_pref", "value": "local_culture"}
+    - something [well-rounded]{"entity": "sustainability_pref", "value": "balanced"}
+    - keep it [even]{"entity": "sustainability_pref", "value": "balanced"}
+    - a [mix of everything]{"entity": "sustainability_pref", "value": "balanced"}
+    - travelling [in June](travel_date)
+    - planning for [the summer holidays](travel_date)
+    - around [Christmas](travel_date)
+    - [next weekend](travel_date)
+    - sometime [in spring 2027](travel_date)
+    - [the first week of May](travel_date)
+    - probably [autumn](travel_date)
+    - [over Easter](travel_date)
+    - maybe [mid-July](travel_date)
+    - [in two weeks](travel_date)
     - from [London](origin) to [Copenhagen](destination) for [2](num_travellers) people
     - [me and my wife]{"entity": "num_travellers", "value": "2"} on a [budget]{"entity": "budget", "value": "budget"}
     - travelling from [Madrid](origin) to [Amsterdam](destination) next month
@@ -498,32 +528,55 @@ nlu:
     - cheap
     - low budget
     - on a budget
+    - tight budget
+    - affordable
+    - economical
+    - shoestring
 
 - synonym: mid
   examples: |
     - mid-range
     - moderate
+    - mid-priced
+    - standard
+    - middle
 
 - synonym: comfort
   examples: |
     - comfortable
     - luxury
     - high-end
+    - premium
+    - upscale
+    - lavish
 
 - synonym: low_carbon
   examples: |
     - lowest carbon
     - low carbon
     - greenest
+    - minimise my footprint
+    - low emissions
+    - most eco-friendly
 
 - synonym: eco_certified
   examples: |
     - eco-certified
     - eco certified
     - certified
+    - green-certified
+    - environmentally certified
 
 - synonym: local_culture
   examples: |
     - local community
     - local culture
     - community
+    - local people
+    - small local businesses
+
+- synonym: balanced
+  examples: |
+    - well-rounded
+    - even
+    - mix of everything
