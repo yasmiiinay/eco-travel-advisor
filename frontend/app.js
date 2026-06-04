@@ -20,7 +20,21 @@
    MODE = "mock": run the standalone offline preview below (dev / fallback).
    -------------------------------------------------------------------------- */
 const MODE = "rasa";
-const RASA_REST_URL = "http://localhost:5005/webhooks/rest/webhook";
+
+// Resolve the Rasa REST endpoint automatically, so the URL never has to be
+// hard-coded or committed:
+//   1. ?rasa=<url> query parameter wins  (use this with an ngrok URL in dev:
+//      open  index.html?rasa=https://xxxx.ngrok-free.app/webhooks/rest/webhook )
+//   2. on localhost  -> the local Rasa server (default dev setup)
+//   3. otherwise (e.g. deployed on HuggingFace Spaces) -> the same origin, so
+//      the hosted UI and Rasa share one stable URL with no edits.
+const _params = new URLSearchParams(location.search);
+const RASA_REST_URL =
+  _params.get("rasa") ||
+  (["localhost", "127.0.0.1"].includes(location.hostname)
+    ? "http://localhost:5005/webhooks/rest/webhook"
+    : location.origin + "/webhooks/rest/webhook");
+
 const SENDER = "demo-user";
 
 /* --------------------------------------------------------------------------

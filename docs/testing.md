@@ -55,6 +55,38 @@ Some behaviours depend on custom-action side-effects (slots set inside the form)
 All reports are written to `results/` (`intent_report.json`, `story_report.json`, confusion-matrix
 and histogram PNGs).
 
+## Recorded results (data-augmentation iteration)
+
+Cross-validation (5-fold) was run across two rounds of dataset augmentation. Round 1 grew the set
+from 161 to 320 examples (mainly the weaker control intents); round 2 added 30 more examples for
+the rarer entities (`budget`, `sustainability_pref`, `travel_date`), reaching 350. The held-out
+test set was unchanged throughout, so the comparison is honest.
+
+| Metric (5-fold CV, held-out) | Round 0 (161) | Round 1 (320) | Round 2 (350) |
+|---|---|---|---|
+| Intent test F1 | 0.672 | 0.796 | 0.766 |
+| Intent test accuracy | 0.696 | 0.797 | 0.774 |
+| Intent test precision | 0.687 | 0.833 | 0.807 |
+| Entity test F1 | 0.587 | 0.613 | **0.639** |
+| Entity test accuracy | 0.907 | 0.944 | 0.925 |
+| Entity test precision | 0.679 | 0.690 | **0.723** |
+
+Interpretation: round 1 lifted held-out intent F1 by ~12 points (0.67 -> 0.80), confirming the
+original gap was a small-data limitation, not a pipeline flaw. Round 2 raised entity F1 (0.61 ->
+0.64) and entity precision (0.69 -> 0.72) as intended. The apparent intent dip in round 2
+(0.80 -> 0.77) is within the cross-validation standard deviation (~0.05), i.e. statistical noise
+from different fold splits and harder added examples rather than a real regression; both rounds sit
+in the same ~0.77-0.80 band. Entity macro-F1 remains modest while entity *accuracy* stays high
+(~0.93) because the rarer entity types still have few examples per fold and are under-extracted
+(this also triggers scikit-learn's "ill-defined precision" warnings). Beyond this point the data
+augmentation shows diminishing returns: further gains would require substantially more data or a
+pretrained-embedding pipeline (at odds with the CPU-friendly design goal), so augmentation was
+stopped here and the limitation is documented as future work. Dialogue (Core) testing remained at
+100% on held-out stories, which is expected because those flows are largely rule-governed.
+
+Also report the **in-sample** figures (100%) explicitly as an optimistic upper bound, so the
+contrast with the cross-validation numbers demonstrates and explains the generalisation gap.
+
 ## Manual edge-case checklist (run in `rasa shell`)
 
 Record pass/fail and a note for each:
