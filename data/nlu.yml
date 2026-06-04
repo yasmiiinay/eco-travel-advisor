@@ -116,6 +116,11 @@ nlu:
     - are you a live agent
     - what are you exactly
     - are you an assistant
+    - are you powered by AI
+    - are you a computer program
+    - be honest, are you a bot
+    - is this conversation automated
+    - are you an actual robot or a real agent
 
 - intent: plan_trip
   examples: |
@@ -166,6 +171,9 @@ nlu:
     - let me see what you found
     - present the options please
     - re-show my travel plan
+    - show me what you found earlier
+    - bring my plan back up
+    - what did you suggest for me
 
 - intent: request_human
   examples: |
@@ -287,6 +295,16 @@ nlu:
     - set an alarm for me
     - what's the population of France
     - give me cooking tips
+    - what's the square root of 144
+    - who painted the Mona Lisa
+    - how tall is Mount Everest
+    - suggest a good workout plan
+    - explain how photosynthesis works
+    - who is your favourite singer
+    - what's the offside rule in football
+    - what's trending on social media today
+    - give me a chocolate cake recipe
+    - how do I fix my laptop
 
 # ===========================================================================
 # inform — carries the slot entities (origin, destination, dates, travellers,
@@ -404,6 +422,18 @@ nlu:
     - [over Easter](travel_date)
     - maybe [mid-July](travel_date)
     - [in two weeks](travel_date)
+    - we're keeping it [affordable]{"entity": "budget", "value": "budget"}
+    - honestly just [cheap]{"entity": "budget", "value": "budget"}
+    - let's go [mid-range]{"entity": "budget", "value": "mid"}
+    - we'd splurge on [luxury]{"entity": "budget", "value": "comfort"}
+    - definitely the [low carbon]{"entity": "sustainability_pref", "value": "low_carbon"} way
+    - I'll take [eco certified]{"entity": "sustainability_pref", "value": "eco_certified"} stays
+    - let's back the [local community]{"entity": "sustainability_pref", "value": "local_culture"}
+    - a [balanced]{"entity": "sustainability_pref", "value": "balanced"} mix is good
+    - around [the 10th of June](travel_date)
+    - departing [on July 20](travel_date)
+    - leaving [on the 5th of next month](travel_date)
+    - between [March 3 and March 9]{"entity": "travel_date", "value": "March 3 to March 9"}
     - from [London](origin) to [Copenhagen](destination) for [2](num_travellers) people
     - [me and my wife]{"entity": "num_travellers", "value": "2"} on a [budget]{"entity": "budget", "value": "budget"}
     - travelling from [Madrid](origin) to [Amsterdam](destination) next month
