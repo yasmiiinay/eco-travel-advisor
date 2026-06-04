@@ -102,3 +102,58 @@ stories:
           - destination: Berlin
       - action: trip_planning_form
       - active_loop: trip_planning_form
+
+  # --- DC-02: affirming the greeting starts the form ---
+  - story: DC-02 affirm after greet starts the form
+    steps:
+      - user: |
+          hello there
+        intent: greet
+      - action: utter_greet
+      - user: |
+          yes please
+        intent: affirm
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # --- DC-05: edit selects a field (no slot pollution) ---
+  - story: DC-05 edit a specific field
+    steps:
+      - user: |
+          /edit_answer{"field_to_edit": "travel_date"}
+        intent: edit_answer
+        entities:
+          - field_to_edit: travel_date
+      - action: action_edit_answer
+
+  # --- DC-06: go back during the form routes to action_go_back ---
+  - story: DC-06 go back during the form
+    steps:
+      - user: |
+          I want to plan a trip
+        intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - user: |
+          can we go back
+        intent: go_back
+      - action: action_go_back
+
+  # --- DC-07: typo destination outside the form starts planning ---
+  - story: DC-07 typo destination outside the form starts planning
+    steps:
+      - user: |
+          berln
+        intent: inform
+        entities:
+          - destination: Berlin
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # --- DC-08: out-of-scope is redirected, not a fallback ---
+  - story: DC-08 out of scope is redirected
+    steps:
+      - user: |
+          what's the weather tomorrow
+        intent: out_of_scope
+      - action: utter_out_of_scope

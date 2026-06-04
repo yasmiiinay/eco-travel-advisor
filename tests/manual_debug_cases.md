@@ -18,7 +18,7 @@ Run each case in the UI (or `rasa shell`), then re-capture the tracker and run
 - **Expected:** Trip planning starts; origin=London, destination=Paris pre-filled; bot asks the next missing slot (travel dates).
 - **Observed:** `action_default_fallback` → "I'm not sure I understood." (no form, no buttons)
 - **Category:** `missing_form_activation`, `unexpected_fallback`, `missing_buttons`
-- **Status:** OPEN
+- **Status:** FIXED — added the "Start planning from trip details" rule (`inform` -> `trip_planning_form`). Verified via REST: "I want to plan a trip from London to Paris" now activates the form and asks for travel dates (no fallback).
 
 ### DC-02 — affirm after greet does not start the form
 - **Steps:** Type `hello` → bot greets. Type `yes ready`.
@@ -74,4 +74,23 @@ Run each case in the UI (or `rasa shell`), then re-capture the tracker and run
 - **Expected:** Questions and recoverable states always offer buttons (quick replies).
 - **Observed:** Plain text only; "there's no button shown".
 - **Category:** `missing_buttons`
-- **Status:** OPEN
+- **Status:** FIX APPLIED — fallback/question responses now carry buttons; the frontend renders Rasa buttons as chips.
+
+---
+
+## Sprint fix summary (DC-01 .. DC-09)
+
+| Case | Status | Fix applied | File(s) |
+|---|---|---|---|
+| DC-01 | FIXED (verified) | `inform` activates `trip_planning_form` | data/rules.yml |
+| DC-02 | FIX APPLIED | greet → affirm → form story; "let's go"/"start" as plan_trip | data/stories.yml, data/nlu.yml |
+| DC-03 | FIX APPLIED | `resolve_origin` fuzzy match; canonical origin in messages | repository.py, actions.py |
+| DC-04 | FIX APPLIED | destination typos auto-corrected; no `/affirm` slot pollution | actions.py |
+| DC-05 | FIX APPLIED | edit buttons use `field_to_edit`; only the chosen slot is reset | domain.yml, actions.py |
+| DC-06 | FIX APPLIED | `not_intent` on from_text + from_entity; control intents never become slot values | domain.yml |
+| DC-07 | FIX APPLIED | supported city/typo outside form starts planning; unsupported → scoped message | data/rules.yml, actions.py |
+| DC-08 | FIX APPLIED | `utter_default` / `utter_ask_rephrase` + unsupported message carry buttons | domain.yml, actions.py |
+| DC-09 | FIX APPLIED | backend responses include buttons; frontend renders them as chips | domain.yml, actions.py, frontend/app.js |
+
+"FIX APPLIED" = change made and statically validated; verify by re-training and running the
+regression stories + the manual UI checklist below.

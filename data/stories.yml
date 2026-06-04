@@ -23,34 +23,14 @@ stories:
       - action: action_high_emission_alert
       - action: utter_carbon_disclaimer
 
-  # ---- 1. Typo clarification accepted (e.g. "Pariiis" -> "Paris") ----
-  - story: destination typo clarified and accepted
+  # ---- DC-02: affirming the greeting starts the form ----
+  #     (Destination typos are now auto-corrected inside validate_destination,
+  #     so the old affirm/deny clarification stories are no longer needed.)
+  - story: greet then confirm to start planning
     steps:
-      - intent: plan_trip
-      - action: trip_planning_form
-      - active_loop: trip_planning_form
-      - slot_was_set:
-          - destination_guess: Paris
+      - intent: greet
+      - action: utter_greet
       - intent: affirm
-      - action: action_clarify_destination
-      - slot_was_set:
-          - destination: Paris
-          - destination_guess: null
-      - action: trip_planning_form
-      - active_loop: trip_planning_form
-
-  # ---- 2. Typo clarification rejected (form re-asks destination) ----
-  - story: destination typo rejected then re-asked
-    steps:
-      - intent: plan_trip
-      - action: trip_planning_form
-      - active_loop: trip_planning_form
-      - slot_was_set:
-          - destination_guess: Berlin
-      - intent: deny
-      - action: action_clarify_destination
-      - slot_was_set:
-          - destination_guess: null
       - action: trip_planning_form
       - active_loop: trip_planning_form
 
@@ -111,8 +91,6 @@ stories:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
-      - intent: affirm
       - action: utter_carbon_disclaimer
 
   # ---- 8. Human handover with full context, requested mid-form ----

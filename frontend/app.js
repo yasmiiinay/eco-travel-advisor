@@ -32,7 +32,7 @@ const _params = new URLSearchParams(location.search);
 const RASA_REST_URL =
   _params.get("rasa") ||
   (["localhost", "127.0.0.1"].includes(location.hostname)
-    ? "http://localhost:5005/webhooks/rest/webhook"
+    ? "https://segment-premises-prior.ngrok-free.dev/webhooks/rest/webhook"
     : location.origin + "/webhooks/rest/webhook");
 
 const SENDER = "demo-user";
@@ -660,7 +660,9 @@ async function sendToRasa(message, userLabel) {
   try {
     const res = await fetch(RASA_REST_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // ngrok-skip-browser-warning bypasses ngrok-free's interstitial HTML page
+      // so the fetch receives the JSON response (harmless when not using ngrok).
+      headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
       body: JSON.stringify({ sender: SENDER, message }),
     });
     if (!res.ok) throw new Error("HTTP " + res.status);

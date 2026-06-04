@@ -146,6 +146,11 @@ nlu:
     - start a new trip plan
     - I want to travel somewhere green
     - help me put a trip together
+    - let's go
+    - start
+    - let's get started
+    - I'm ready, let's begin
+    - ok let's do it
 
 - intent: request_recommendations
   examples: |

@@ -179,6 +179,15 @@ def resolve_destination(user_input: str) -> tuple:
     return _fuzzy_match(user_input, destinations, key="city"), source
 
 
+def resolve_origin(user_input: str) -> Optional[dict]:
+    """Resolve free-text origin to a supported origin city, tolerating typos
+    (e.g. "madridd" -> Madrid). Returns the origin dict or None."""
+    origins, _ = _get_origins()
+    if not origins:
+        return None
+    return _fuzzy_match(user_input, origins, key="city")
+
+
 def _find_destination_by_id(destination_id: int) -> Optional[dict]:
     destinations, _ = get_destinations()
     for row in destinations or []:
@@ -319,6 +328,8 @@ def get_transport_options(
     options = []
     for mode in (modes or []):
         name = mode["mode"]
+        if name == "ferry":
+            continue  # ferry needs real sea routes; not modelled on land corridors
         if distance < mode.get("min_recommended_distance_km", 0):
             continue  # e.g. don't offer flights for very short trips
 

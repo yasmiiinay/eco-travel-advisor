@@ -99,6 +99,23 @@ def _carbon_band(level: Optional[str]) -> str:
     return LEVEL_TEXT.get(level, "Unknown")
 
 
+def _canonical_origin(name: Optional[str]) -> Optional[str]:
+    """Return the canonical origin city name (e.g. 'madridd' -> 'Madrid')."""
+    if not name:
+        return name
+    match = repository.resolve_origin(name)
+    return match["city"] if match else name
+
+
+SUPPORTED_LINE = "I currently support Paris, Berlin, Amsterdam and Copenhagen."
+DEST_BUTTONS = [
+    {"title": "Paris", "payload": '/inform{"destination": "Paris"}'},
+    {"title": "Berlin", "payload": '/inform{"destination": "Berlin"}'},
+    {"title": "Amsterdam", "payload": '/inform{"destination": "Amsterdam"}'},
+    {"title": "Copenhagen", "payload": '/inform{"destination": "Copenhagen"}'},
+]
+
+
 # ===========================================================================
 # 1. Form validation
 # ===========================================================================
@@ -115,12 +132,19 @@ class ValidateTripPlanningForm(FormValidationAction):
             return {"origin": None}
         if not slot_value or not str(slot_value).strip():
             return {"origin": None}
-        # Origins are fuzzy-matched later by the distance engine, so accept and tidy.
+        # Fuzzy-resolve so typos normalise to a canonical city ("madridd" -> Madrid).
+        match = repository.resolve_origin(str(slot_value))
+        if match:
+            city = match["city"]
+            if city.lower() != str(slot_value).strip().lower():
+                dispatcher.utter_message(text=f"I understood that as {city}.")
+            return {"origin": city}
+        # Unknown origin: accept tidied text; the distance engine still fuzzy-matches.
         return {"origin": str(slot_value).strip().title()}
 
     def validate_destination(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
-            dispatcher.utter_message(text="That's okay - I currently cover Paris, Berlin, Amsterdam and Copenhagen.")
+            dispatcher.utter_message(text="That's okay. " + SUPPORTED_LINE, buttons=DEST_BUTTONS)
             return {"destination": None}
         if not slot_value or not str(slot_value).strip():
             return {"destination": None}
@@ -128,24 +152,16 @@ class ValidateTripPlanningForm(FormValidationAction):
         dest, _ = repository.resolve_destination(str(slot_value))
         if dest is None:
             dispatcher.utter_message(
-                text=f"Sorry, I don't support '{slot_value}' yet. I currently cover "
-                     f"Paris, Berlin, Amsterdam and Copenhagen."
+                text=f"Sorry, I don't support '{slot_value}' yet. " + SUPPORTED_LINE,
+                buttons=DEST_BUTTONS,
             )
             return {"destination": None}
 
+        # Auto-correct close typos (e.g. "kopenhg" -> Copenhagen) and continue.
         city = dest["city"]
-        if city.lower() == str(slot_value).strip().lower():
-            return {"destination": city}
-
-        # Close but not exact -> ask the user to confirm the correction.
-        dispatcher.utter_message(
-            text=f"Did you mean {city}?",
-            buttons=[
-                {"title": f"Yes, {city}", "payload": "/affirm"},
-                {"title": "No", "payload": "/deny"},
-            ],
-        )
-        return {"destination": None, "destination_guess": city}
+        if city.lower() != str(slot_value).strip().lower():
+            dispatcher.utter_message(text=f"I understood that as {city}.")
+        return {"destination": city}
 
     def validate_travel_date(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
@@ -233,7 +249,7 @@ class ActionEstimateCarbon(Action):
         return "action_estimate_carbon"
 
     def run(self, dispatcher, tracker, domain) -> List[EventType]:
-        origin = tracker.get_slot("origin")
+        origin = _canonical_origin(tracker.get_slot("origin"))
         destination = tracker.get_slot("destination")
         travellers = _parse_travellers(tracker.get_slot("num_travellers")) or 1
 
@@ -285,7 +301,7 @@ class ActionRecommendPlan(Action):
         return "action_recommend_plan"
 
     def run(self, dispatcher, tracker, domain) -> List[EventType]:
-        origin = tracker.get_slot("origin")
+        origin = _canonical_origin(tracker.get_slot("origin"))
         destination = tracker.get_slot("destination")
         preference = tracker.get_slot("sustainability_pref")
 
@@ -355,7 +371,7 @@ class ActionHighEmissionAlert(Action):
         return "action_high_emission_alert"
 
     def run(self, dispatcher, tracker, domain) -> List[EventType]:
-        origin = tracker.get_slot("origin")
+        origin = _canonical_origin(tracker.get_slot("origin"))
         destination = tracker.get_slot("destination")
         dest, _ = repository.resolve_destination(destination) if destination else (None, None)
         if not origin or not dest:
@@ -420,28 +436,32 @@ class ActionEditAnswer(Action):
         return "action_edit_answer"
 
     def run(self, dispatcher, tracker, domain) -> List[EventType]:
-        editable = {
+        labels = {
             "origin": "origin", "destination": "destination", "travel_date": "travel dates",
             "num_travellers": "traveller count", "budget": "budget",
             "sustainability_pref": "sustainability preference",
         }
-        # If the user named a field via an entity, reset that slot directly.
+        # The edit buttons send /edit_answer{"field_to_edit":"<slot>"}; we read that
+        # entity to know which slot to reset. It is never written into a slot itself,
+        # so the slot is cleared and the form re-asks for a fresh, valid value.
+        field = None
         for ent in (tracker.latest_message or {}).get("entities", []):
-            if ent.get("entity") in editable:
-                slot = ent["entity"]
-                dispatcher.utter_message(text=f"Okay - let's update your {editable[slot]}.")
-                return [SlotSet(slot, None), FollowupAction(FORM_NAME)]
+            if ent.get("entity") == "field_to_edit" and ent.get("value") in labels:
+                field = ent["value"]
+                break
+        if field:
+            dispatcher.utter_message(text=f"Okay - let's update your {labels[field]}.")
+            return [SlotSet(field, None), FollowupAction(FORM_NAME)]
 
-        # Otherwise offer buttons. Each re-enters edit_answer carrying the field entity.
         dispatcher.utter_message(
             text="Which answer would you like to change?",
             buttons=[
-                {"title": "Origin", "payload": '/edit_answer{"origin": "change"}'},
-                {"title": "Destination", "payload": '/edit_answer{"destination": "change"}'},
-                {"title": "Travel dates", "payload": '/edit_answer{"travel_date": "change"}'},
-                {"title": "Travellers", "payload": '/edit_answer{"num_travellers": "change"}'},
-                {"title": "Budget", "payload": '/edit_answer{"budget": "change"}'},
-                {"title": "Preference", "payload": '/edit_answer{"sustainability_pref": "change"}'},
+                {"title": "Origin", "payload": '/edit_answer{"field_to_edit": "origin"}'},
+                {"title": "Destination", "payload": '/edit_answer{"field_to_edit": "destination"}'},
+                {"title": "Travel dates", "payload": '/edit_answer{"field_to_edit": "travel_date"}'},
+                {"title": "Travellers", "payload": '/edit_answer{"field_to_edit": "num_travellers"}'},
+                {"title": "Budget", "payload": '/edit_answer{"field_to_edit": "budget"}'},
+                {"title": "Preference", "payload": '/edit_answer{"field_to_edit": "sustainability_pref"}'},
             ],
         )
         return []

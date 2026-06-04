@@ -27,6 +27,7 @@ entities:
   - num_travellers
   - budget
   - sustainability_pref
+  - field_to_edit              # which answer to edit (from edit buttons); never a slot value
 
 # ---------------------------------------------------------------------------
 # Slots
@@ -41,7 +42,21 @@ slots:
     mappings:
       - type: from_entity
         entity: origin
+        not_intent: &control_intents
+          - go_back
+          - edit_answer
+          - reset_trip
+          - request_human
+          - out_of_scope
+          - affirm
+          - deny
+          - greet
+          - goodbye
+          - bot_challenge
+          - plan_trip
+          - request_recommendations
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: origin
@@ -52,7 +67,9 @@ slots:
     mappings:
       - type: from_entity
         entity: destination
+        not_intent: *control_intents
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: destination
@@ -63,7 +80,9 @@ slots:
     mappings:
       - type: from_entity
         entity: travel_date
+        not_intent: *control_intents
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: travel_date
@@ -74,7 +93,9 @@ slots:
     mappings:
       - type: from_entity
         entity: num_travellers
+        not_intent: *control_intents
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: num_travellers
@@ -85,7 +106,9 @@ slots:
     mappings:
       - type: from_entity
         entity: budget
+        not_intent: *control_intents
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: budget
@@ -96,7 +119,9 @@ slots:
     mappings:
       - type: from_entity
         entity: sustainability_pref
+        not_intent: *control_intents
       - type: from_text
+        not_intent: *control_intents
         conditions:
           - active_loop: trip_planning_form
             requested_slot: sustainability_pref
@@ -237,7 +262,12 @@ responses:
           payload: "/plan_trip"
 
   utter_ask_rephrase:
-    - text: "Sorry, I didn't quite catch that. Could you rephrase, or use one of the buttons?"
+    - text: "Sorry, I didn't quite catch that. I can help you plan a sustainable trip - start below, or talk to a human advisor."
+      buttons:
+        - title: "Plan a trip"
+          payload: "/plan_trip"
+        - title: "Talk to a human"
+          payload: "/request_human"
 
   utter_trip_reset:
     - text: "No problem - I've cleared your trip. Let's start fresh."
@@ -252,7 +282,12 @@ responses:
     - text: "Safe and sustainable travels! Come back any time to plan your next trip."
 
   utter_default:
-    - text: "I'm not sure I understood. You can pick an option, type a city, or ask to speak to a human advisor."
+    - text: "I'm not sure I understood. I can help you plan a sustainable trip to Paris, Berlin, Amsterdam or Copenhagen - choose an option or type a city."
+      buttons:
+        - title: "Plan a trip"
+          payload: "/plan_trip"
+        - title: "Talk to a human"
+          payload: "/request_human"
 
 # ---------------------------------------------------------------------------
 # Session configuration
