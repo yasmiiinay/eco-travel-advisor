@@ -2,13 +2,13 @@
   {
     "hotel_id": 1,
     "destination_id": 1,
-    "name": "Hôtel Vert Montmartre",
+    "name": "Paris Green Stay",
     "eco_certification": "Green Key",
     "price_band": "mid",
-    "nightly_price_estimate": 145,
+    "nightly_price_estimate": 132,
     "sustainability_score": 8.2,
     "carbon_score": "green",
-    "public_transport_access": "Excellent — 3 min walk to Metro Line 12",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift"
@@ -16,31 +16,29 @@
     "sustainability_tags": [
       "eco_certified",
       "renewable_energy",
-      "public_transport_access",
-      "locally_sourced_food"
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 2,
     "destination_id": 1,
-    "name": "Le Jardin Éco",
+    "name": "Hotel Verde Paris",
     "eco_certification": "EU Ecolabel",
     "price_band": "high",
-    "nightly_price_estimate": 240,
-    "sustainability_score": 9.0,
+    "nightly_price_estimate": 228,
+    "sustainability_score": 9.1,
     "carbon_score": "green",
-    "public_transport_access": "Good — 6 min walk to Metro Line 1",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift",
       "accessible_bathroom"
     ],
     "sustainability_tags": [
-      "eco_certified",
+      "carbon_neutral",
       "renewable_energy",
       "low_water_usage",
-      "carbon_neutral",
       "wheelchair_accessible"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
@@ -48,34 +46,33 @@
   {
     "hotel_id": 3,
     "destination_id": 1,
-    "name": "Auberge Verte Bastille",
-    "eco_certification": "Green Globe",
+    "name": "EcoBunk Paris",
+    "eco_certification": "Green Key",
     "price_band": "low",
-    "nightly_price_estimate": 75,
-    "sustainability_score": 7.4,
+    "nightly_price_estimate": 72,
+    "sustainability_score": 7.5,
     "carbon_score": "amber",
-    "public_transport_access": "Good — 5 min walk to Metro Line 5",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "lift"
     ],
     "sustainability_tags": [
-      "eco_certified",
       "plastic_free",
-      "public_transport_access",
-      "locally_owned"
+      "locally_owned",
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 4,
     "destination_id": 2,
-    "name": "Hotel Grünwald",
+    "name": "Berlin Green Stay",
     "eco_certification": "Green Key",
     "price_band": "mid",
-    "nightly_price_estimate": 110,
-    "sustainability_score": 8.0,
+    "nightly_price_estimate": 105,
+    "sustainability_score": 8.2,
     "carbon_score": "green",
-    "public_transport_access": "Excellent — 2 min walk to U-Bahn U2",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift"
@@ -83,31 +80,29 @@
     "sustainability_tags": [
       "eco_certified",
       "renewable_energy",
-      "public_transport_access",
-      "plastic_free"
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 5,
     "destination_id": 2,
-    "name": "Das Nachhaltig Hotel",
+    "name": "Hotel Verde Berlin",
     "eco_certification": "EU Ecolabel",
     "price_band": "high",
-    "nightly_price_estimate": 195,
+    "nightly_price_estimate": 180,
     "sustainability_score": 9.1,
     "carbon_score": "green",
-    "public_transport_access": "Good — 7 min walk to S-Bahn",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift",
       "accessible_bathroom"
     ],
     "sustainability_tags": [
-      "eco_certified",
-      "renewable_energy",
       "carbon_neutral",
-      "locally_sourced_food",
+      "renewable_energy",
+      "low_water_usage",
       "wheelchair_accessible"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
@@ -115,66 +110,63 @@
   {
     "hotel_id": 6,
     "destination_id": 2,
-    "name": "EcoStay Kreuzberg",
-    "eco_certification": "Green Tourism",
+    "name": "EcoBunk Berlin",
+    "eco_certification": "Green Key",
     "price_band": "low",
-    "nightly_price_estimate": 68,
-    "sustainability_score": 7.6,
+    "nightly_price_estimate": 57,
+    "sustainability_score": 7.5,
     "carbon_score": "amber",
-    "public_transport_access": "Excellent — 4 min walk to U-Bahn U1",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "lift"
     ],
     "sustainability_tags": [
-      "eco_certified",
       "plastic_free",
       "locally_owned",
-      "public_transport_access",
-      "fair_wage"
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 7,
     "destination_id": 3,
-    "name": "Canal Green Hotel",
+    "name": "Amsterdam Green Stay",
     "eco_certification": "Green Key",
     "price_band": "mid",
-    "nightly_price_estimate": 160,
-    "sustainability_score": 8.3,
+    "nightly_price_estimate": 143,
+    "sustainability_score": 8.2,
     "carbon_score": "green",
-    "public_transport_access": "Excellent — 5 min walk to Centraal tram lines",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
+      "step_free_entrance",
       "lift"
     ],
     "sustainability_tags": [
       "eco_certified",
       "renewable_energy",
-      "public_transport_access",
-      "low_water_usage"
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 8,
     "destination_id": 3,
-    "name": "Hotel Duurzaam",
+    "name": "Hotel Verde Amsterdam",
     "eco_certification": "EU Ecolabel",
     "price_band": "high",
-    "nightly_price_estimate": 230,
-    "sustainability_score": 9.2,
+    "nightly_price_estimate": 247,
+    "sustainability_score": 9.1,
     "carbon_score": "green",
-    "public_transport_access": "Good — 8 min walk to tram",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift",
       "accessible_bathroom"
     ],
     "sustainability_tags": [
-      "eco_certified",
-      "renewable_energy",
       "carbon_neutral",
-      "locally_sourced_food",
+      "renewable_energy",
+      "low_water_usage",
       "wheelchair_accessible"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
@@ -185,55 +177,94 @@
     "name": "EcoBunk Amsterdam",
     "eco_certification": "Green Key",
     "price_band": "low",
-    "nightly_price_estimate": 62,
+    "nightly_price_estimate": 78,
     "sustainability_score": 7.5,
     "carbon_score": "amber",
-    "public_transport_access": "Good — 6 min walk to bus and tram",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "lift"
     ],
     "sustainability_tags": [
-      "eco_certified",
       "plastic_free",
-      "public_transport_access",
-      "locally_owned"
+      "locally_owned",
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 10,
     "destination_id": 4,
-    "name": "Hotel Bæredygtig",
-    "eco_certification": "Green Key Gold",
-    "price_band": "high",
-    "nightly_price_estimate": 255,
-    "sustainability_score": 9.4,
+    "name": "Copenhagen Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 165,
+    "sustainability_score": 8.2,
     "carbon_score": "green",
-    "public_transport_access": "Excellent — 3 min walk to Metro M3",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
-      "lift",
-      "accessible_bathroom"
+      "lift"
     ],
     "sustainability_tags": [
       "eco_certified",
       "renewable_energy",
-      "carbon_neutral",
-      "low_water_usage",
-      "wheelchair_accessible"
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
     "hotel_id": 11,
     "destination_id": 4,
-    "name": "Nordic Eco Lodge",
-    "eco_certification": "Nordic Swan Ecolabel",
-    "price_band": "mid",
-    "nightly_price_estimate": 150,
-    "sustainability_score": 8.6,
+    "name": "Hotel Verde Copenhagen",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 285,
+    "sustainability_score": 9.1,
     "carbon_score": "green",
-    "public_transport_access": "Good — 6 min walk to S-tog",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 12,
+    "destination_id": 4,
+    "name": "EcoBunk Copenhagen",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 90,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 13,
+    "destination_id": 5,
+    "name": "London Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 176,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "step_free_entrance",
       "lift"
@@ -241,29 +272,498 @@
     "sustainability_tags": [
       "eco_certified",
       "renewable_energy",
-      "locally_sourced_food",
       "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   },
   {
-    "hotel_id": 12,
-    "destination_id": 4,
-    "name": "GreenSleep Copenhagen",
+    "hotel_id": 14,
+    "destination_id": 5,
+    "name": "Hotel Verde London",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 304,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 15,
+    "destination_id": 5,
+    "name": "EcoBunk London",
     "eco_certification": "Green Key",
     "price_band": "low",
-    "nightly_price_estimate": 82,
-    "sustainability_score": 7.8,
+    "nightly_price_estimate": 96,
+    "sustainability_score": 7.5,
     "carbon_score": "amber",
-    "public_transport_access": "Excellent — 4 min walk to Metro M1",
+    "public_transport_access": "Good — short walk to public transport.",
     "accessibility_features": [
       "lift"
     ],
     "sustainability_tags": [
-      "eco_certified",
       "plastic_free",
-      "public_transport_access",
-      "fair_wage"
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 16,
+    "destination_id": 6,
+    "name": "Madrid Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 121,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 17,
+    "destination_id": 6,
+    "name": "Hotel Verde Madrid",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 209,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 18,
+    "destination_id": 6,
+    "name": "EcoBunk Madrid",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 66,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 19,
+    "destination_id": 7,
+    "name": "Rome Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 127,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 20,
+    "destination_id": 7,
+    "name": "Hotel Verde Rome",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 218,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 21,
+    "destination_id": 7,
+    "name": "EcoBunk Rome",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 69,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 22,
+    "destination_id": 8,
+    "name": "Barcelona Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 132,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 23,
+    "destination_id": 8,
+    "name": "Hotel Verde Barcelona",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 228,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 24,
+    "destination_id": 8,
+    "name": "EcoBunk Barcelona",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 72,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 25,
+    "destination_id": 9,
+    "name": "Vienna Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 132,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 26,
+    "destination_id": 9,
+    "name": "Hotel Verde Vienna",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 228,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 27,
+    "destination_id": 9,
+    "name": "EcoBunk Vienna",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 72,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 28,
+    "destination_id": 10,
+    "name": "Munich Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 138,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 29,
+    "destination_id": 10,
+    "name": "Hotel Verde Munich",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 238,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 30,
+    "destination_id": 10,
+    "name": "EcoBunk Munich",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 75,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 31,
+    "destination_id": 11,
+    "name": "Lisbon Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 110,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 32,
+    "destination_id": 11,
+    "name": "Hotel Verde Lisbon",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 190,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 33,
+    "destination_id": 11,
+    "name": "EcoBunk Lisbon",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 60,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 34,
+    "destination_id": 12,
+    "name": "Prague Green Stay",
+    "eco_certification": "Green Key",
+    "price_band": "mid",
+    "nightly_price_estimate": 94,
+    "sustainability_score": 8.2,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift"
+    ],
+    "sustainability_tags": [
+      "eco_certified",
+      "renewable_energy",
+      "public_transport_access"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 35,
+    "destination_id": 12,
+    "name": "Hotel Verde Prague",
+    "eco_certification": "EU Ecolabel",
+    "price_band": "high",
+    "nightly_price_estimate": 162,
+    "sustainability_score": 9.1,
+    "carbon_score": "green",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "step_free_entrance",
+      "lift",
+      "accessible_bathroom"
+    ],
+    "sustainability_tags": [
+      "carbon_neutral",
+      "renewable_energy",
+      "low_water_usage",
+      "wheelchair_accessible"
+    ],
+    "disclaimer": "Sustainability and price figures are indicative prototype estimates."
+  },
+  {
+    "hotel_id": 36,
+    "destination_id": 12,
+    "name": "EcoBunk Prague",
+    "eco_certification": "Green Key",
+    "price_band": "low",
+    "nightly_price_estimate": 51,
+    "sustainability_score": 7.5,
+    "carbon_score": "amber",
+    "public_transport_access": "Good — short walk to public transport.",
+    "accessibility_features": [
+      "lift"
+    ],
+    "sustainability_tags": [
+      "plastic_free",
+      "locally_owned",
+      "public_transport_access"
     ],
     "disclaimer": "Sustainability and price figures are indicative prototype estimates."
   }

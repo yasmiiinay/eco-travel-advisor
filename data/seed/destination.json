@@ -5,8 +5,8 @@
     "country": "France",
     "latitude": 48.8566,
     "longitude": 2.3522,
-    "description": "France's capital, dense and highly walkable with an extensive metro and a growing low-emission zone.",
-    "sustainability_summary": "Strong rail links from across Europe, expanding cycle network and car-restricted central districts make low-carbon visits realistic.",
+    "description": "Paris, France.",
+    "sustainability_summary": "Dense, walkable, strong rail links and a growing low-emission zone.",
     "average_daily_budget": 120,
     "best_transport_modes": [
       "train",
@@ -20,8 +20,8 @@
     "country": "Germany",
     "latitude": 52.52,
     "longitude": 13.405,
-    "description": "Germany's capital, spacious and bike-friendly with a comprehensive U-Bahn/S-Bahn network.",
-    "sustainability_summary": "Excellent public transport, abundant green space and a mature second-hand/repair culture support low-impact stays.",
+    "description": "Berlin, Germany.",
+    "sustainability_summary": "Excellent public transport, abundant green space and a strong repair culture.",
     "average_daily_budget": 95,
     "best_transport_modes": [
       "train",
@@ -35,8 +35,8 @@
     "country": "Netherlands",
     "latitude": 52.3676,
     "longitude": 4.9041,
-    "description": "A compact canal city where cycling is the dominant mode of transport.",
-    "sustainability_summary": "World-leading cycling infrastructure and frequent international rail make car-free, low-carbon travel the default.",
+    "description": "Amsterdam, Netherlands.",
+    "sustainability_summary": "World-leading cycling infrastructure and frequent international rail.",
     "average_daily_budget": 130,
     "best_transport_modes": [
       "train",
@@ -50,9 +50,129 @@
     "country": "Denmark",
     "latitude": 55.6761,
     "longitude": 12.5683,
-    "description": "Denmark's capital, consistently ranked among the world's most sustainable cities.",
-    "sustainability_summary": "Carbon-neutral city ambitions, district heating, harbour swimming and a cycling-first design make it a benchmark eco-destination.",
+    "description": "Copenhagen, Denmark.",
+    "sustainability_summary": "Carbon-neutral city ambitions, district heating and a cycling-first design.",
     "average_daily_budget": 150,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 5,
+    "city": "London",
+    "country": "United Kingdom",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "description": "London, United Kingdom.",
+    "sustainability_summary": "Vast public transport network and an expanding ultra-low-emission zone.",
+    "average_daily_budget": 160,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "very high"
+  },
+  {
+    "destination_id": 6,
+    "city": "Madrid",
+    "country": "Spain",
+    "latitude": 40.4168,
+    "longitude": -3.7038,
+    "description": "Madrid, Spain.",
+    "sustainability_summary": "Compact centre, high-speed rail hub and extensive metro coverage.",
+    "average_daily_budget": 110,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 7,
+    "city": "Rome",
+    "country": "Italy",
+    "latitude": 41.9028,
+    "longitude": 12.4964,
+    "description": "Rome, Italy.",
+    "sustainability_summary": "Walkable historic core; rail-reachable from across Europe.",
+    "average_daily_budget": 115,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "very high"
+  },
+  {
+    "destination_id": 8,
+    "city": "Barcelona",
+    "country": "Spain",
+    "latitude": 41.3874,
+    "longitude": 2.1686,
+    "description": "Barcelona, Spain.",
+    "sustainability_summary": "Dense, walkable grid with strong metro and coastal rail links.",
+    "average_daily_budget": 120,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "very high"
+  },
+  {
+    "destination_id": 9,
+    "city": "Vienna",
+    "country": "Austria",
+    "latitude": 48.2082,
+    "longitude": 16.3738,
+    "description": "Vienna, Austria.",
+    "sustainability_summary": "Consistently ranked for quality of life; superb trams and rail.",
+    "average_daily_budget": 120,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 10,
+    "city": "Munich",
+    "country": "Germany",
+    "latitude": 48.1351,
+    "longitude": 11.582,
+    "description": "Munich, Germany.",
+    "sustainability_summary": "Efficient S-Bahn/U-Bahn and easy alpine rail connections.",
+    "average_daily_budget": 125,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 11,
+    "city": "Lisbon",
+    "country": "Portugal",
+    "latitude": 38.7223,
+    "longitude": -9.1393,
+    "description": "Lisbon, Portugal.",
+    "sustainability_summary": "Hilly, walkable city with trams and a growing renewable grid.",
+    "average_daily_budget": 100,
+    "best_transport_modes": [
+      "train",
+      "coach"
+    ],
+    "popularity_level": "high"
+  },
+  {
+    "destination_id": 12,
+    "city": "Prague",
+    "country": "Czechia",
+    "latitude": 50.0755,
+    "longitude": 14.4378,
+    "description": "Prague, Czechia.",
+    "sustainability_summary": "Compact, very walkable centre with cheap, extensive public transport.",
+    "average_daily_budget": 85,
     "best_transport_modes": [
       "train",
       "coach"

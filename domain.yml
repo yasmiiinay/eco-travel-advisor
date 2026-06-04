@@ -189,19 +189,23 @@ responses:
           payload: "/plan_trip"
 
   utter_ask_origin:
-    - text: "Where are you travelling from? Pick a city or just type one."
+    - text: "Where are you travelling from? Tap a city or type one - I support 12 popular European cities (Paris, Berlin, Amsterdam, Copenhagen, London, Madrid, Rome, Barcelona, Vienna, Munich, Lisbon, Prague)."
       buttons:
         - title: "London"
           payload: '/inform{"origin": "London"}'
+        - title: "Paris"
+          payload: '/inform{"origin": "Paris"}'
         - title: "Madrid"
           payload: '/inform{"origin": "Madrid"}'
         - title: "Rome"
           payload: '/inform{"origin": "Rome"}'
-        - title: "Istanbul"
-          payload: '/inform{"origin": "Istanbul"}'
+        - title: "Berlin"
+          payload: '/inform{"origin": "Berlin"}'
+        - title: "Barcelona"
+          payload: '/inform{"origin": "Barcelona"}'
 
   utter_ask_destination:
-    - text: "Which destination would you like to explore? (You can also type a city.)"
+    - text: "Which destination would you like to explore? Tap one or type a city (I support Paris, Berlin, Amsterdam, Copenhagen, London, Madrid, Rome, Barcelona, Vienna, Munich, Lisbon and Prague)."
       buttons:
         - title: "Paris"
           payload: '/inform{"destination": "Paris"}'
@@ -209,8 +213,12 @@ responses:
           payload: '/inform{"destination": "Berlin"}'
         - title: "Amsterdam"
           payload: '/inform{"destination": "Amsterdam"}'
-        - title: "Copenhagen"
-          payload: '/inform{"destination": "Copenhagen"}'
+        - title: "London"
+          payload: '/inform{"destination": "London"}'
+        - title: "Rome"
+          payload: '/inform{"destination": "Rome"}'
+        - title: "Barcelona"
+          payload: '/inform{"destination": "Barcelona"}'
 
   utter_ask_travel_date:
     - text: "When are you planning to travel? You can type the dates, or choose a flexible plan."
@@ -282,7 +290,7 @@ responses:
     - text: "Safe and sustainable travels! Come back any time to plan your next trip."
 
   utter_default:
-    - text: "I'm not sure I understood. I can help you plan a sustainable trip to Paris, Berlin, Amsterdam or Copenhagen - choose an option or type a city."
+    - text: "I'm not sure I understood. I can help you plan a sustainable trip between 12 popular European cities - choose an option or type a city."
       buttons:
         - title: "Plan a trip"
           payload: "/plan_trip"

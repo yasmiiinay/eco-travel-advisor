@@ -322,24 +322,24 @@ nlu:
     - I want to travel from [London](origin) to [Paris](destination)
     - I'm going from [Madrid](origin) to [Berlin](destination)
     - travelling from [Rome](origin) to [Amsterdam](destination)
-    - from [Istanbul](origin) to [Copenhagen](destination)
+    - from [Lisbon](origin) to [Copenhagen](destination)
     - [London](origin) to [Berlin](destination)
-    - I'd like to go from [Manchester](origin) to [Paris](destination)
-    - from [Dublin](origin) to [Amsterdam](destination)
+    - I'd like to go from [Munich](origin) to [Paris](destination)
+    - from [Vienna](origin) to [Amsterdam](destination)
     - we want to travel from [Munich](origin) to [Copenhagen](destination)
     - planning a trip from [Vienna](origin) to [Paris](destination)
-    - from [Zurich](origin) over to [Berlin](destination)
+    - from [Barcelona](origin) over to [Berlin](destination)
     - I live in [Barcelona](origin)
     - I'm travelling from [Vienna](origin)
-    - my origin is [Zurich](origin)
+    - my origin is [Barcelona](origin)
     - starting from [Munich](origin)
     - I'm based in [Rome](origin)
-    - departing from [Brussels](origin)
+    - departing from [Madrid](origin)
     - my starting point is [London](origin)
     - [London](origin)
     - [Madrid](origin)
     - [Rome](origin)
-    - [Istanbul](origin)
+    - [Lisbon](origin)
     - I want to visit [Paris](destination)
     - take me to [Berlin](destination)
     - I'd love to go to [Amsterdam](destination)
@@ -450,22 +450,18 @@ nlu:
 
 - lookup: origin
   examples: |
-    - London
-    - Manchester
-    - Edinburgh
-    - Dublin
-    - Brussels
-    - Madrid
-    - Barcelona
-    - Rome
-    - Munich
-    - Vienna
-    - Zurich
-    - Istanbul
     - Paris
     - Berlin
     - Amsterdam
     - Copenhagen
+    - London
+    - Madrid
+    - Rome
+    - Barcelona
+    - Vienna
+    - Munich
+    - Lisbon
+    - Prague
 
 - lookup: destination
   examples: |
@@ -473,6 +469,14 @@ nlu:
     - Berlin
     - Amsterdam
     - Copenhagen
+    - London
+    - Madrid
+    - Rome
+    - Barcelona
+    - Vienna
+    - Munich
+    - Lisbon
+    - Prague
 
 - lookup: sustainability_pref
   examples: |

@@ -107,12 +107,15 @@ def _canonical_origin(name: Optional[str]) -> Optional[str]:
     return match["city"] if match else name
 
 
-SUPPORTED_LINE = "I currently support Paris, Berlin, Amsterdam and Copenhagen."
+SUPPORTED_LINE = ("I currently support 12 popular European cities: Paris, Berlin, Amsterdam, "
+                  "Copenhagen, London, Madrid, Rome, Barcelona, Vienna, Munich, Lisbon and Prague.")
 DEST_BUTTONS = [
     {"title": "Paris", "payload": '/inform{"destination": "Paris"}'},
     {"title": "Berlin", "payload": '/inform{"destination": "Berlin"}'},
+    {"title": "London", "payload": '/inform{"destination": "London"}'},
+    {"title": "Rome", "payload": '/inform{"destination": "Rome"}'},
+    {"title": "Barcelona", "payload": '/inform{"destination": "Barcelona"}'},
     {"title": "Amsterdam", "payload": '/inform{"destination": "Amsterdam"}'},
-    {"title": "Copenhagen", "payload": '/inform{"destination": "Copenhagen"}'},
 ]
 
 
