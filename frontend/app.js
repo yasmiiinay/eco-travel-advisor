@@ -14,7 +14,17 @@
 "use strict";
 
 /* --------------------------------------------------------------------------
-   1. Sample data (mirrors data/seed/*.json)
+   0. Mode configuration
+   MODE = "rasa": send messages to the live Rasa backend over the REST channel
+                  and render real bot responses (default).
+   MODE = "mock": run the standalone offline preview below (dev / fallback).
+   -------------------------------------------------------------------------- */
+const MODE = "rasa";
+const RASA_REST_URL = "http://localhost:5005/webhooks/rest/webhook";
+const SENDER = "demo-user";
+
+/* --------------------------------------------------------------------------
+   1. Sample data (mirrors data/seed/*.json) — used only by MODE = "mock"
    -------------------------------------------------------------------------- */
 
 const ORIGINS = {
@@ -526,7 +536,8 @@ document.getElementById("composer").addEventListener("submit", (ev) => {
   if (!text) return;
   addUser(text);
   input.value = "";
-  handleFreeText(text);
+  if (MODE === "rasa") sendToRasa(text, false);   // user bubble already shown
+  else handleFreeText(text);
 });
 
 function handleFreeText(text) {
@@ -581,12 +592,107 @@ function resetTrip() {
   goToStep(0);
 }
 
+/* --------------------------------------------------------------------------
+   9. Rasa REST mode — send messages and render real bot responses
+   -------------------------------------------------------------------------- */
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function addBotText(text) { addBot(escapeHtml(text).replace(/\n/g, "<br>")); }
+
+// Forward-compatible: render custom card payloads if actions.py sends them
+// via dispatcher.utter_message(json_message={...}). Falls back to pretty JSON.
+function renderCustom(custom) {
+  if (custom && Array.isArray(custom.cards)) {
+    const cards = custom.cards.map((c) => `
+      <div class="card">
+        <div class="card__top">
+          <p class="card__title">${escapeHtml(c.title || "")}</p>
+          ${c.level ? bandHtml(c.level, c.levelText) : ""}
+        </div>
+        ${c.subtitle ? `<p class="card__sub">${escapeHtml(c.subtitle)}</p>` : ""}
+      </div>`).join("");
+    addBotBlock(`<div class="cards">${cards}</div>`);
+  } else {
+    addBotBlock(`<div class="card"><pre style="white-space:pre-wrap;margin:0">${escapeHtml(JSON.stringify(custom, null, 2))}</pre></div>`);
+  }
+}
+
+// Render the array Rasa returns: [{text, buttons, custom, image}, ...]
+function renderRasaResponses(responses) {
+  const buttons = [];
+  (responses || []).forEach((msg) => {
+    if (msg.text) addBotText(msg.text);
+    if (msg.image) addBotBlock(`<img src="${escapeHtml(msg.image)}" alt="" style="max-width:100%;border-radius:10px" />`);
+    if (msg.custom) renderCustom(msg.custom);
+    if (Array.isArray(msg.buttons)) buttons.push(...msg.buttons);
+  });
+  if (buttons.length) {
+    setDock(`<div class="choices">${buttons.map((b) =>
+      `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(b.title)}</button>`
+    ).join("")}</div>`);
+  } else {
+    setDock(`<p class="dock__hint">Type your reply below, or use the controls above.</p>`);
+  }
+}
+
+// Send a message to Rasa. userLabel === false suppresses the user bubble
+// (used for the silent /greet trigger and for free text already echoed).
+async function sendToRasa(message, userLabel) {
+  if (userLabel !== false) addUser(userLabel || message);
+  setDock(`<p class="dock__hint">…</p>`);
+  try {
+    const res = await fetch(RASA_REST_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sender: SENDER, message }),
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    renderRasaResponses(await res.json());
+  } catch (err) {
+    addBot("I couldn't reach the assistant backend. Please make sure the Rasa server is running " +
+           "(<code>rasa run --enable-api --cors \"*\"</code>) and the action server is up. " +
+           "For an offline demo, set <code>MODE = \"mock\"</code> at the top of app.js.");
+    setDock(`<p class="dock__hint">Backend not reachable.</p>`);
+  }
+}
+
+function bootRasa() {
+  document.getElementById("btn-back").disabled = false;
+  document.getElementById("btn-edit").disabled = false;
+  sendToRasa("/greet", false);   // trigger the greeting with no user bubble
+}
+
+// Chips rendered from Rasa buttons carry data-rasa-payload; clicking sends it.
+dockEl.addEventListener("click", (ev) => {
+  const btn = ev.target.closest("[data-rasa-payload]");
+  if (!btn) return;
+  sendToRasa(btn.dataset.rasaPayload, btn.textContent);
+});
+
+/* --------------------------------------------------------------------------
+   10. Trip controls + boot (mode-aware)
+   -------------------------------------------------------------------------- */
+
 document.getElementById("btn-back").addEventListener("click", () => {
+  if (MODE === "rasa") return sendToRasa("/go_back", "Go back");
   if (state.stepIndex > 0) goToStep(state.stepIndex - 1);
 });
-document.getElementById("btn-edit").addEventListener("click", openEdit);
-document.getElementById("btn-reset").addEventListener("click", resetTrip);
-document.getElementById("btn-handover").addEventListener("click", showHandover);
+document.getElementById("btn-edit").addEventListener("click", () => {
+  if (MODE === "rasa") return sendToRasa("/edit_answer", "Edit an answer");
+  openEdit();
+});
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if (MODE === "rasa") { chatEl.innerHTML = ""; return sendToRasa("/reset_trip", "Reset trip"); }
+  resetTrip();
+});
+document.getElementById("btn-handover").addEventListener("click", () => {
+  if (MODE === "rasa") return sendToRasa("/request_human", "Talk to a human");
+  showHandover();
+});
 
 // Start the conversation
-goToStep(0);
+if (MODE === "rasa") bootRasa();
+else goToStep(0);

@@ -1,1 +1,9 @@
-# Action server + tracker store endpoints — TO IMPLEMENT
+# Service endpoints for the Eco-Travel Advisor.
+
+# Custom action server (run with: rasa run actions). Default port 5055.
+action_endpoint:
+  url: "http://localhost:5055/webhook"
+
+# Tracker store: the default in-memory store is used (no configuration needed).
+# A SQL/Neon tracker store could be added here as a future enhancement, but the
+# prototype keeps conversation state in memory.
