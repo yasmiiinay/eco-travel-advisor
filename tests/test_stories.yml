@@ -80,3 +80,25 @@ stories:
           that's everything, cheers
         intent: goodbye
       - action: utter_goodbye
+
+  # --- DC-01: inform with trip details (no active loop) must start the form ---
+  - story: DC-01 inform with origin and destination starts the form
+    steps:
+      - user: |
+          I want to plan a trip from London to Paris
+        intent: inform
+        entities:
+          - origin: London
+          - destination: Paris
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  - story: DC-01 destination only starts the form
+    steps:
+      - user: |
+          Berlin
+        intent: inform
+        entities:
+          - destination: Berlin
+      - action: trip_planning_form
+      - active_loop: trip_planning_form

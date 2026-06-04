@@ -21,6 +21,17 @@ rules:
       - action: trip_planning_form
       - active_loop: trip_planning_form
 
+  # 2b. (DC-01) Start the form when the user gives trip details directly, e.g.
+  #     "I want to plan a trip from London to Paris" or just "Berlin", instead of
+  #     falling back. Origin/destination entities are already captured into their
+  #     slots by the from_entity mappings, so the form then asks for whatever is
+  #     still missing.
+  - rule: Start planning from trip details
+    steps:
+      - intent: inform
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
   # 3 & 4. Submit the form, then run the carbon estimate, recommendations,
   # high-emission alert, and the carbon disclaimer.
   - rule: Submit trip planning form and present the plan
