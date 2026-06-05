@@ -31,6 +31,18 @@ import repository
 FORM_NAME = "trip_planning_form"
 
 LEVEL_TEXT = {"green": "Low", "amber": "Medium", "red": "High"}
+LEVEL_ICON = {"green": "✓", "amber": "!", "red": "⚠"}
+MODE_ICON = {"flight": "✈️", "train": "🚆", "coach": "🚌", "car": "🚗", "ferry": "⛴️"}
+CARBON_DISCLAIMER = "Estimates only — actual emissions vary with occupancy, route and operator."
+
+
+def _status(level: Optional[str]) -> Dict[Text, Any]:
+    """A colour-band status object that never relies on colour alone."""
+    return {
+        "level": level or "green",
+        "label": f"{LEVEL_TEXT.get(level, 'Unknown')} impact",
+        "icon": LEVEL_ICON.get(level, "•"),
+    }
 
 BUDGET_LABELS = {
     "budget": "Budget (up to 80 EUR/day)",
@@ -302,14 +314,25 @@ class ActionEstimateCarbon(Action):
         level = estimate["carbon_level"] or greenest["carbon_level"]
         source = estimate["data_source"]
 
-        dispatcher.utter_message(
-            text=(
-                f"Estimated carbon footprint for {origin} to {dest['city']}:\n"
-                f"- Greenest option ({greenest['mode']}): about {per_person} kg CO2e per person "
-                f"({_carbon_band(greenest['carbon_level'])} impact)\n"
-                f"- Total for {travellers} traveller(s): about {total} kg CO2e"
-            )
+        fallback = (
+            f"Estimated carbon footprint for {origin} to {dest['city']}: "
+            f"greenest option ({greenest['mode']}) about {per_person} kg CO2e per person, "
+            f"{total} kg total for {travellers} traveller(s)."
         )
+        dispatcher.utter_message(json_message={
+            "type": "carbon_estimate",
+            "route": f"{origin} → {dest['city']}",
+            "per_person_kg": per_person,
+            "total_kg": total,
+            "travellers": travellers,
+            "range_kg": [round(total * 0.85, 1), round(total * 1.15, 1)],
+            "unit": "kg CO2e",
+            "greenest_mode": greenest["mode"],
+            "greenest_icon": MODE_ICON.get(greenest["mode"], "•"),
+            "status": _status(greenest["carbon_level"]),
+            "disclaimer": CARBON_DISCLAIMER,
+            "fallback_text": fallback,
+        })
         return [
             SlotSet("estimated_co2", total),
             SlotSet("carbon_level", level),
@@ -337,53 +360,96 @@ class ActionRecommendPlan(Action):
         did = dest["destination_id"]
         pref_label = PREF_LABELS.get(preference, "balanced")
 
-        lines: List[str] = [
+        # Intro line as its own (text) message — the cards follow.
+        dispatcher.utter_message(text=(
             f"Here's your sustainable plan for {dest['city']}, ranked for your "
             f"\"{pref_label}\" priority. These are curated prototype recommendations."
-        ]
+        ))
 
-        # Transport comparison
+        # --- Transport comparison card ---
         if origin:
             options, _ = repository.get_transport_options(
                 origin, did, emissions_provider=carbon.climatiq_provider
             )
             if options:
-                lines.append("\nTransport options (lowest emissions first):")
-                for opt in options:
-                    lines.append(
-                        f"- {opt['mode'].title()}: ~{opt['estimated_emissions_kg_per_person']} kg CO2e "
-                        f"[{_carbon_band(opt['carbon_level'])}], {opt['estimated_duration_hours']} h, "
-                        f"~EUR {opt['estimated_price']}"
-                    )
+                opt_payload = [{
+                    "mode": o["mode"].title(),
+                    "icon": MODE_ICON.get(o["mode"], "•"),
+                    "duration_h": o["estimated_duration_hours"],
+                    "price_eur": o["estimated_price"],
+                    "carbon_kg": o["estimated_emissions_kg_per_person"],
+                    "status": _status(o["carbon_level"]),
+                    "recommended": idx == 0,
+                } for idx, o in enumerate(options)]
+                fb = "; ".join(
+                    f"{o['mode']} ~{o['estimated_emissions_kg_per_person']}kg, "
+                    f"{o['estimated_duration_hours']}h, ~EUR{o['estimated_price']}"
+                    for o in options
+                )
+                dispatcher.utter_message(json_message={
+                    "type": "transport_comparison",
+                    "route": f"{origin} → {dest['city']}",
+                    "sorted_by": "lowest carbon",
+                    "options": opt_payload,
+                    "disclaimer": CARBON_DISCLAIMER,
+                    "fallback_text": "Transport options (lowest emissions first): " + fb,
+                })
 
-        # Eco-hotels
+        # --- Eco-hotels card group ---
         hotels, _ = repository.get_hotels_for_destination(did, preference)
         if hotels:
-            lines.append("\nEco-friendly stays:")
-            for hotel in hotels[:3]:
-                lines.append(
-                    f"- {hotel['name']} ({hotel['eco_certification']}, EUR {hotel['nightly_price_estimate']}/night) "
-                    f"- carbon: {_carbon_band(hotel.get('carbon_score'))}, "
-                    f"sustainability {hotel.get('sustainability_score')}/10"
-                )
+            cards = [{
+                "title": h["name"],
+                "facts": [
+                    h["eco_certification"],
+                    f"€{h['nightly_price_estimate']}/night",
+                    f"Sustainability {h.get('sustainability_score')}/10",
+                ],
+                "status": _status(h.get("carbon_score")),
+                "badges": [{"label": "Eco-certified", "icon": "🏅"}],
+            } for h in hotels[:3]]
+            dispatcher.utter_message(json_message={
+                "type": "card_group",
+                "group": "eco_hotels",
+                "title": f"Eco-friendly stays in {dest['city']}",
+                "cards": cards,
+                "fallback_text": "Eco stays: " + ", ".join(h["name"] for h in hotels[:3]),
+            })
 
-        # Cultural / local experiences
+        # --- Cultural / local experiences card group ---
         experiences, _ = repository.get_experiences_for_destination(did, preference)
         if experiences:
-            lines.append("\nLocal experiences:")
-            for exp in experiences[:2]:
-                lines.append(f"- {exp['name']} ({exp.get('type', 'experience')}, EUR {exp['estimated_price']})")
+            cards = [{
+                "title": e["name"],
+                "facts": [e.get("type", "experience"), f"€{e['estimated_price']}"],
+                "status": _status("green"),
+            } for e in experiences[:2]]
+            dispatcher.utter_message(json_message={
+                "type": "card_group",
+                "group": "experiences",
+                "title": f"Low-impact experiences in {dest['city']}",
+                "cards": cards,
+                "fallback_text": "Experiences: " + ", ".join(e["name"] for e in experiences[:2]),
+            })
 
-        # Carbon offsets
+        # --- Carbon offset card ---
         offsets, _ = repository.get_offset_options(did)
         if offsets:
-            offset = offsets[0]
-            lines.append(
-                f"\nOffset option: {offset['provider_name']} ({offset['project_type']}) "
-                f"at about EUR {offset['estimated_cost_per_tonne']} per tonne CO2e."
-            )
-
-        dispatcher.utter_message(text="\n".join(lines))
+            o = offsets[0]
+            dispatcher.utter_message(json_message={
+                "type": "card_group",
+                "group": "offsets",
+                "title": "Offset the rest",
+                "cards": [{
+                    "title": o["provider_name"],
+                    "facts": [o["project_type"], f"~€{o['estimated_cost_per_tonne']}/tonne CO₂e"],
+                    "badges": [{"label": "Carbon offset", "icon": "🌱"}],
+                }],
+                "fallback_text": (
+                    f"Offset option: {o['provider_name']} ({o['project_type']}), "
+                    f"~EUR {o['estimated_cost_per_tonne']}/tonne CO2e."
+                ),
+            })
         return []
 
 
@@ -410,19 +476,30 @@ class ActionHighEmissionAlert(Action):
             return []  # nothing high-emission: do not over-warn
 
         greener = next((o for o in options if o["carbon_level"] != "red"), None)
-        message = (
-            f"Heads up: travelling by {high['mode']} is high emission "
-            f"(about {high['estimated_emissions_kg_per_person']} kg CO2e per person)."
+        body = (
+            f"Travelling by {high['mode']} is high emission "
+            f"(about {high['estimated_emissions_kg_per_person']} kg CO₂e per person)."
         )
+        action_btn = None
         if greener:
             saved = round(high["estimated_emissions_kg_per_person"]
                           - greener["estimated_emissions_kg_per_person"], 1)
-            message += (
+            body += (
                 f" A lower-carbon alternative is {greener['mode']} "
-                f"(~{greener['estimated_emissions_kg_per_person']} kg, "
-                f"{_carbon_band(greener['carbon_level'])} impact), saving about {saved} kg per person."
+                f"(~{greener['estimated_emissions_kg_per_person']} kg), "
+                f"saving about {saved} kg per person."
             )
-        dispatcher.utter_message(text=message)
+            action_btn = {"label": f"See greener {greener['mode']} option",
+                          "payload": "/request_recommendations"}
+        dispatcher.utter_message(json_message={
+            "type": "alert",
+            "level": "red",
+            "icon": "⚠",
+            "title": "High-emission option ahead",
+            "body": body,
+            "action": action_btn,
+            "fallback_text": body,
+        })
         return []
 
 
@@ -552,18 +629,25 @@ class ActionHandover(Action):
         repository.save_trip_session(trip_payload)
         repository.save_handover_log(conversation_id, context)
 
-        dispatcher.utter_message(
-            text=(
-                "I'm connecting you to a human travel advisor. They'll receive your full "
-                "trip context, so you won't need to repeat anything:\n"
-                f"- From {origin or '-'} to {destination or '-'}\n"
-                f"- Dates: {travel_date or '-'}, travellers: {travellers or '-'}\n"
-                f"- Budget: {BUDGET_LABELS.get(budget, budget or '-')}\n"
-                f"- Priority: {PREF_LABELS.get(preference, preference or '-')}\n"
-                f"- Estimated carbon: {estimated_co2 or '-'} kg "
-                f"({_carbon_band(carbon_level)} impact), source: {data_source or '-'}"
-            )
+        fallback = (
+            "Connecting you to a human travel advisor with your full trip context "
+            f"({origin or '-'} → {destination or '-'}, {travellers or '-'} traveller(s))."
         )
+        dispatcher.utter_message(json_message={
+            "type": "handover",
+            "advisor": {"name": "Maya", "role": "Human travel advisor"},
+            "summary": {
+                "route": f"{origin or '-'} → {destination or '-'}",
+                "travel_date": travel_date or "-",
+                "travellers": travellers or "-",
+                "budget": BUDGET_LABELS.get(budget, budget or "-"),
+                "preference": PREF_LABELS.get(preference, preference or "-"),
+                "estimated_co2_kg": estimated_co2,
+                "carbon_level": carbon_level,
+            },
+            "transferred": ["Trip details", "Recommendations shown", "Chat history"],
+            "fallback_text": fallback,
+        })
         return []
 
 

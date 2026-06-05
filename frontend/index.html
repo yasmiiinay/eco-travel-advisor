@@ -2,50 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eco-Travel Advisor — UX Preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Eco-Travel Advisor</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Standalone UX preview. Runs entirely in the browser on static, seed-mirrored
-       sample data. It is structured so the same flow can later be driven by the
-       Rasa REST channel instead of the local state machine in app.js. -->
-  <div class="app" role="application" aria-label="Eco-Travel Advisor assistant">
+  <!-- Eco-Travel Advisor — v2 front end. Connects to the Rasa REST channel and
+       renders text, quick-reply buttons and rich custom card payloads. The shell
+       has two regions: the conversation column and a live Trip Summary panel
+       (a docked side panel on desktop, a collapsible drawer on mobile). -->
+  <div class="app" id="app" data-mode="bot" role="application" aria-label="Eco-Travel Advisor assistant">
 
-    <header class="app__header">
+    <!-- ---------------- Top bar ---------------- -->
+    <header class="topbar">
       <div class="brand">
-        <span class="brand__leaf" aria-hidden="true">🌿</span>
-        <div>
-          <h1 class="brand__title">Eco-Travel Advisor</h1>
-          <p class="brand__tagline">Plan a lower-carbon trip</p>
+        <span class="brand__logo" aria-hidden="true">🌿</span>
+        <div class="brand__meta">
+          <h1 class="brand__title" id="app-title">Eco-Travel Advisor</h1>
+          <p class="brand__status" id="app-status">
+            <span class="dot" aria-hidden="true"></span><span id="app-status-text">Assistant · online</span>
+          </p>
         </div>
+        <span class="mode-badge" id="mode-badge">Chatbot</span>
       </div>
-      <div class="trip-controls" role="toolbar" aria-label="Trip controls">
-        <button type="button" id="btn-back" class="ctrl" disabled>← Back</button>
-        <button type="button" id="btn-edit" class="ctrl" disabled>Edit answer</button>
-        <button type="button" id="btn-reset" class="ctrl">Reset trip</button>
-        <button type="button" id="btn-handover" class="ctrl ctrl--accent">Talk to a human</button>
-      </div>
+
+      <nav class="controls" aria-label="Trip controls">
+        <button type="button" id="btn-back" class="ctrl" title="Go back a step">
+          <span aria-hidden="true">←</span> Back
+        </button>
+        <button type="button" id="btn-edit" class="ctrl" title="Edit an answer">
+          <span aria-hidden="true">✎</span> Edit
+        </button>
+        <button type="button" id="btn-reset" class="ctrl" title="Start a new trip">
+          <span aria-hidden="true">↺</span> Reset
+        </button>
+        <button type="button" id="btn-handover" class="ctrl ctrl--accent" title="Talk to a human advisor">
+          <span aria-hidden="true">🧑‍💼</span> Talk to a human
+        </button>
+        <button type="button" id="btn-return" class="ctrl ctrl--accent" title="Return to the assistant" hidden>
+          <span aria-hidden="true">←</span> Return to assistant
+        </button>
+      </nav>
     </header>
 
-    <!-- Progress summary of collected answers (updates as the user chooses) -->
-    <section class="summary" id="summary" aria-label="Your trip so far" hidden>
-      <ul class="summary__list" id="summary-list"></ul>
-    </section>
+    <!-- ---------------- Main layout ---------------- -->
+    <div class="layout">
 
-    <!-- Conversation transcript -->
-    <main class="chat" id="chat" role="log" aria-live="polite" aria-label="Conversation"></main>
+      <!-- Conversation column -->
+      <section class="conv">
+        <!-- Mobile summary bar (tap to open the drawer) -->
+        <button type="button" class="summary-bar" id="summary-bar" aria-expanded="false" aria-controls="summary" hidden>
+          <span class="summary-bar__route" id="summary-bar-route">New trip</span>
+          <span class="summary-bar__count" id="summary-bar-count">0/6</span>
+          <span class="summary-bar__chev" aria-hidden="true">▾</span>
+        </button>
 
-    <!-- Dynamic interaction dock: holds the buttons/chips/cards/calendar for the
-         current step. The free-text row underneath is always available. -->
-    <section class="dock" id="dock" aria-label="Choices for the current step"></section>
+        <main class="chat" id="chat" role="log" aria-live="polite" aria-label="Conversation"></main>
 
-    <form class="composer" id="composer" autocomplete="off">
-      <label class="visually-hidden" for="text-input">Type a message</label>
-      <input type="text" id="text-input" class="composer__input"
-             placeholder="Or type here… (e.g. “Pariiis”, “me and my wife”)" />
-      <button type="submit" class="composer__send" aria-label="Send message">Send</button>
-    </form>
+        <!-- Quick replies / choices for the current step -->
+        <div class="dock" id="dock" aria-label="Choices for the current step"></div>
+
+        <!-- Free-text input (always available, secondary to the buttons) -->
+        <form class="composer" id="composer" autocomplete="off">
+          <label class="sr-only" for="text-input">Type a message</label>
+          <input type="text" id="text-input" class="composer__input"
+                 placeholder="Type here, or tap an option above…" />
+          <button type="submit" class="composer__send" aria-label="Send message">
+            <span aria-hidden="true">➤</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Trip summary panel (docked on desktop, drawer on mobile) -->
+      <aside class="summary" id="summary" aria-label="Your trip summary">
+        <div class="summary__head">
+          <h2 class="summary__title">Your trip</h2>
+          <span class="summary__count" id="summary-count">0 / 6</span>
+        </div>
+        <div class="summary__progress" aria-hidden="true"><span id="summary-progress-fill"></span></div>
+        <ul class="summary__list" id="summary-list">
+          <li class="summary__empty" id="summary-empty">Your choices will appear here as we go.</li>
+        </ul>
+        <p class="summary__hint">Tap <span aria-hidden="true">✎</span> on any row to change it.</p>
+      </aside>
+
+      <!-- Mobile drawer backdrop -->
+      <div class="scrim" id="scrim" hidden></div>
+    </div>
+
+    <!-- Reset confirmation dialog -->
+    <div class="confirm" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+      <div class="confirm__box">
+        <h3 class="confirm__title" id="confirm-title">Start a new trip?</h3>
+        <p class="confirm__body">This clears your current plan and starts fresh.</p>
+        <div class="confirm__actions">
+          <button type="button" class="chip" id="confirm-no">Cancel</button>
+          <button type="button" class="chip chip--primary" id="confirm-yes">Start over</button>
+        </div>
+      </div>
+    </div>
 
   </div>
 
