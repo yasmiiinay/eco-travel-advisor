@@ -51,11 +51,14 @@ rules:
       - intent: out_of_scope
       - action: utter_out_of_scope
 
-  # 6. Fallback / clarification on low NLU confidence
-  - rule: Ask the user to rephrase on low confidence
+  # 6. Fallback / clarification on low NLU confidence.
+  #    action_scoped_fallback gives a place-name input (e.g. "adana") a clear
+  #    "I don't cover that yet - I support these cities" reply (DC-08); any other
+  #    low-confidence input gets the generic rephrase prompt.
+  - rule: Scoped fallback on low confidence
     steps:
       - intent: nlu_fallback
-      - action: utter_ask_rephrase
+      - action: action_scoped_fallback
 
   # 7. Human handover (packages full context in action_handover)
   - rule: Hand over to a human advisor

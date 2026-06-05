@@ -157,3 +157,11 @@ stories:
           what's the weather tomorrow
         intent: out_of_scope
       - action: utter_out_of_scope
+
+  # --- DC-08: a low-confidence place-name input routes to the scoped fallback ---
+  - story: DC-08 unsupported place name gets the scoped fallback
+    steps:
+      - user: |
+          adana
+        intent: nlu_fallback
+      - action: action_scoped_fallback

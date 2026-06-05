@@ -543,3 +543,36 @@ class ActionHandover(Action):
             )
         )
         return []
+
+
+# ===========================================================================
+# 10. Scoped fallback (DC-08)
+# A low-confidence message that *looks like a place name* (e.g. "adana") gets a
+# clear, in-scope reply naming the supported cities, instead of the generic
+# "I didn't catch that". Anything else keeps the normal rephrase prompt.
+# ===========================================================================
+
+class ActionScopedFallback(Action):
+    def name(self) -> Text:
+        return "action_scoped_fallback"
+
+    def run(self, dispatcher, tracker, domain) -> List[EventType]:
+        text = (tracker.latest_message.get("text") or "").strip()
+        words = text.split()
+        # Heuristic: one or two alphabetic words, 3+ chars -> probably a city the
+        # user is asking for, just not one we support.
+        looks_like_place = (
+            1 <= len(words) <= 2
+            and text.replace(" ", "").isalpha()
+            and len(text) >= 3
+        )
+
+        if looks_like_place:
+            dispatcher.utter_message(
+                text=f"I don't cover \"{text}\" yet. {SUPPORTED_LINE}",
+                buttons=DEST_BUTTONS,
+            )
+        else:
+            # Generic low-confidence recovery (same content as utter_ask_rephrase).
+            dispatcher.utter_message(response="utter_ask_rephrase")
+        return []
