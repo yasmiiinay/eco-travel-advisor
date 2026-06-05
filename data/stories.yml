@@ -102,14 +102,14 @@ stories:
       - intent: request_human
       - action: action_handover
 
-  # ---- 9. Ambiguous / incomplete answer -> ask to rephrase, then resume ----
+  # ---- 9. Ambiguous / incomplete answer -> scoped fallback, then resume ----
   - story: ambiguous answer during form then clarify
     steps:
       - intent: plan_trip
       - action: trip_planning_form
       - active_loop: trip_planning_form
       - intent: nlu_fallback
-      - action: utter_ask_rephrase
+      - action: action_scoped_fallback
       # The form is still the active loop, so it resumes on the next user turn.
 
   # ---- 10. Natural traveller phrase handled inside the form ----
