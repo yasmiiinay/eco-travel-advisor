@@ -117,7 +117,8 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   transition: background .15s ease;
 }
-.ctrl:hover { background: rgba(255,255,255,.28); }
+.ctrl:hover:not(:disabled) { background: rgba(255,255,255,.28); }
+.ctrl:disabled { opacity: .4; cursor: not-allowed; }
 .ctrl--accent { background: #fff; color: var(--brand-2); }
 .app[data-mode="advisor"] .ctrl--accent { color: var(--accent); }
 .ctrl--accent:hover { background: #eafaf2; }
@@ -203,6 +204,25 @@ body {
 .chip--primary { background: var(--brand); color: #fff; border-color: var(--brand); }
 .chip--primary:hover { background: var(--brand-2); }
 .chip__flag { font-size: 1.05rem; }
+.chip--city { padding-left: 12px; }
+.chip--city.is-hidden { display: none; }
+.chip--more { border-style: dashed; color: var(--brand-2); font-weight: 700; }
+
+/* Date-range picker */
+.datepick { display: flex; flex-direction: column; gap: 10px; }
+.datepick__field { display: flex; flex-direction: column; gap: 4px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.datepick__input {
+  padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 12px;
+  font-size: .94rem; background: var(--surface-2); color: var(--ink); min-height: 44px;
+}
+.datepick__input:focus { background: #fff; }
+.datepick__actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.datepick__out { margin: 2px 0 0; font-weight: 700; color: var(--brand-2); font-size: .86rem; min-height: 1.2em; }
+@media (min-width: 480px) {
+  .datepick { flex-direction: row; flex-wrap: wrap; align-items: flex-end; }
+  .datepick__field { flex: 1; min-width: 130px; }
+  .datepick__actions { width: 100%; }
+}
 
 /* ---------------- Composer ---------------- */
 .composer {

@@ -165,3 +165,29 @@ stories:
           adana
         intent: nlu_fallback
       - action: action_scoped_fallback
+
+  # --- greet then an explicit start command begins the form ---
+  - story: greet then start planning starts the form
+    steps:
+      - user: |
+          hi there
+        intent: greet
+      - action: utter_greet
+      - user: |
+          start planning
+        intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+
+  # --- numeric budget keeps the form moving (inform stays in the loop) ---
+  - story: numeric budget continues the form
+    steps:
+      - user: |
+          I want to plan a trip
+        intent: plan_trip
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
+      - user: |
+          around 100 per day
+        intent: inform
+      - action: trip_planning_form

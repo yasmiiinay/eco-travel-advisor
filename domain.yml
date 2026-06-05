@@ -127,6 +127,11 @@ slots:
             requested_slot: sustainability_pref
 
   # --- Data slots, written by custom actions only ---
+  budget_amount:              # optional typed amount, e.g. "€100/day" (display only)
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
   estimated_co2:
     type: float
     influence_conversation: false

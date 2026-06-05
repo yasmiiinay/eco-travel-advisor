@@ -106,6 +106,32 @@ def _parse_travellers(text: Optional[str]) -> Optional[int]:
     return None
 
 
+def _parse_budget_amount(text: Optional[str]) -> Optional[int]:
+    """Pull a daily-budget number from free text.
+
+    Handles "100", "€100", "100 euros", "around 100 per day", "120/day".
+    Returns the first contiguous run of digits, or None.
+    """
+    if not text:
+        return None
+    digits = ""
+    for ch in str(text):
+        if ch.isdigit():
+            digits += ch
+        elif digits:
+            break
+    return int(digits) if digits else None
+
+
+def _budget_tier_from_amount(amount: int) -> str:
+    """Map a per-person daily budget (EUR) to an existing tier key."""
+    if amount <= 80:
+        return "budget"
+    if amount <= 150:
+        return "mid"
+    return "comfort"
+
+
 def _carbon_band(level: Optional[str]) -> str:
     """Return a text label for a colour band (never rely on colour alone)."""
     return LEVEL_TEXT.get(level, "Unknown")
@@ -224,9 +250,20 @@ class ValidateTripPlanningForm(FormValidationAction):
         if _is_uninformative(slot_value):
             dispatcher.utter_message(response="utter_ask_budget")
             return {"budget": None}
-        key = BUDGET_SYNONYMS.get(str(slot_value).strip().lower())
+        raw = str(slot_value).strip()
+        # 1) Named tier (button payloads + words like "mid", "luxury").
+        key = BUDGET_SYNONYMS.get(raw.lower())
         if key:
-            return {"budget": key}
+            return {"budget": key, "budget_amount": None}
+        # 2) A typed amount: "100", "€100", "100 euros", "around 100 per day".
+        amount = _parse_budget_amount(raw)
+        if amount and amount > 0:
+            tier = _budget_tier_from_amount(amount)
+            tier_name = BUDGET_LABELS[tier].split(" (")[0]
+            dispatcher.utter_message(
+                text=f"Got it — about €{amount}/day, so I'll use the {tier_name} tier."
+            )
+            return {"budget": tier, "budget_amount": f"€{amount}/day"}
         dispatcher.utter_message(response="utter_ask_budget")
         return {"budget": None}
 

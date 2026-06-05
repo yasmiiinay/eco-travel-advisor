@@ -78,6 +78,13 @@ nlu:
     - right
     - confirmed
     - yes go ahead
+    - yes ready
+    - ready
+    - i'm ready
+    - yes i'm ready
+    - yes let's start
+    - yes let's go
+    - ready to start
 
 - intent: deny
   examples: |
@@ -151,6 +158,12 @@ nlu:
     - let's get started
     - I'm ready, let's begin
     - ok let's do it
+    - start planning
+    - let's start
+    - let's start planning
+    - begin
+    - plan my trip
+    - get started
 
 - intent: request_recommendations
   examples: |
@@ -402,6 +415,16 @@ nlu:
     - keep it [economical]{"entity": "budget", "value": "budget"}
     - a [shoestring]{"entity": "budget", "value": "budget"} trip
     - [mid-priced]{"entity": "budget", "value": "mid"} is fine
+    - around [100](budget) per day
+    - my daily budget is [100](budget)
+    - [€100](budget) a day
+    - about [120](budget) euros per day
+    - [150](budget) per person per day
+    - I can spend [90](budget) a day
+    - budget of [200](budget) per day
+    - roughly [80](budget) euros daily
+    - [60](budget) a day is my max
+    - keep it under [70](budget)
     - a [standard]{"entity": "budget", "value": "mid"} budget
     - somewhere in the [middle]{"entity": "budget", "value": "mid"}
     - go [premium]{"entity": "budget", "value": "comfort"}

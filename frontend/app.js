@@ -30,6 +30,11 @@ const RASA_REST_URL =
 // instead of resuming a stale tracker on the server.
 const SENDER = "web-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 
+// Base URL for the Rasa HTTP API (the tracker endpoint lives alongside the REST
+// webhook). Used to read authoritative slot state after each turn.
+const RASA_BASE = RASA_REST_URL.replace(/\/webhooks\/rest\/webhook\/?$/, "");
+const TRACKER_URL = `${RASA_BASE}/conversations/${encodeURIComponent(SENDER)}/tracker`;
+
 /* --------------------------------------------------------------------------
    1. DOM references
    -------------------------------------------------------------------------- */
@@ -55,6 +60,9 @@ const CITY_FLAGS = {
   vienna: "🇦🇹", munich: "🇩🇪", lisbon: "🇵🇹", prague: "🇨🇿",
 };
 const flagFor = (city) => CITY_FLAGS[String(city || "").trim().toLowerCase()] || "";
+// The full supported set, ordered for the city selector (must match the seed data).
+const CITIES = ["London", "Paris", "Madrid", "Rome", "Berlin", "Barcelona",
+                "Amsterdam", "Copenhagen", "Vienna", "Munich", "Lisbon", "Prague"];
 
 const RASA_FIELDS = ["origin", "destination", "travel_date", "num_travellers", "budget", "sustainability_pref"];
 const FIELD_LABEL = {
@@ -91,6 +99,7 @@ function appendMsg(cls, html) {
 function addBot(html) { appendMsg("msg--bot", `<div class="bubble">${html}</div>`); }
 function addFull(html) { appendMsg("msg--full", html); }            // cards / banners
 function addUser(text) {
+  lastBotText = null;                 // a user turn resets the de-dupe guard
   const wrap = appendMsg("msg--user", `<div class="bubble"></div>`);
   wrap.querySelector(".bubble").textContent = text;
 }
@@ -108,8 +117,12 @@ function pill(status) {
   return `<span class="pill pill--${lvl}"><span class="pill__icon">${escapeHtml(status.icon || "")}</span>${escapeHtml(status.label || "")}</span>`;
 }
 
-// Bot text: turn plain carbon labels into pills.
+// Bot text: turn plain carbon labels into pills. De-duplicates a prompt that
+// repeats with no user turn in between (the form sometimes re-asks verbatim).
+let lastBotText = null;
 function addBotText(text) {
+  if (text && text === lastBotText) return;
+  lastBotText = text;
   let html = escapeHtml(text).replace(/\n/g, "<br>");
   html = html
     .replace(/\[Low\]|\(Low impact\)/g, pill({ level: "green", icon: "✓", label: "Low" }))
@@ -119,14 +132,17 @@ function addBotText(text) {
 }
 
 /* --------------------------------------------------------------------------
-   4. Trip summary panel (mirrors slots from outgoing payloads)
+   4. Trip summary panel — driven by the authoritative Rasa tracker
    -------------------------------------------------------------------------- */
-const rasaTrip = {};
+const rasaTrip = {};   // local optimistic mirror; the tracker is the source of truth
 
 function rasaPretty(field, value) {
-  if (field === "budget") return BUDGET_LABEL[value] || value;
+  if (field === "budget") {
+    const tier = BUDGET_LABEL[value] || value;
+    return rasaTrip.budget_amount ? `${rasaTrip.budget_amount} · ${tier}` : tier;
+  }
   if (field === "sustainability_pref") return PREF_LABEL[value] || value;
-  if (field === "travel_date" && value === "flexible") return "Flexible";
+  if (field === "travel_date") return value === "flexible" ? "Flexible dates" : value;
   if (field === "origin" || field === "destination") {
     const f = flagFor(value);
     return (f ? f + " " : "") + value;
@@ -134,9 +150,11 @@ function rasaPretty(field, value) {
   return value;
 }
 
+// Optimistic, immediate update from an outgoing payload (snappy UI); the tracker
+// fetch right after confirms / corrects it.
 function trackOutgoing(message) {
   if (!message) return;
-  if (message === "/reset_trip") { RASA_FIELDS.forEach((f) => delete rasaTrip[f]); renderSummary(); return; }
+  if (message === "/reset_trip") { RASA_FIELDS.forEach((f) => delete rasaTrip[f]); delete rasaTrip.budget_amount; renderSummary(); return; }
   const edit = message.match(/^\/edit_answer\{[^}]*"field_to_edit"\s*:\s*"([^"]+)"/);
   if (edit) { delete rasaTrip[edit[1]]; renderSummary(); return; }
   if (message.startsWith("/inform{")) {
@@ -148,10 +166,28 @@ function trackOutgoing(message) {
   }
 }
 
+// Authoritative slot state from Rasa (requires `rasa run --enable-api`).
+async function refreshFromTracker() {
+  try {
+    const res = await fetch(TRACKER_URL, {
+      headers: { "ngrok-skip-browser-warning": "true" },
+    });
+    if (!res.ok) return;                         // fall back to the local mirror
+    const data = await res.json();
+    const slots = data && data.slots ? data.slots : {};
+    [...RASA_FIELDS, "budget_amount", "estimated_co2", "carbon_level"].forEach((k) => {
+      const v = slots[k];
+      if (v === null || v === undefined || v === "") delete rasaTrip[k];
+      else rasaTrip[k] = v;
+    });
+    renderSummary();
+  } catch (_) { /* offline / CORS — keep the local mirror */ }
+}
+
 function renderSummary() {
   const set = RASA_FIELDS.filter((f) => rasaTrip[f] != null && rasaTrip[f] !== "");
   if (!set.length) {
-    summaryListEl.innerHTML = `<li class="summary__empty" id="summary-empty">Your choices will appear here as we go.</li>`;
+    summaryListEl.innerHTML = `<li class="summary__empty">Your choices will appear here as we go.</li>`;
   } else {
     summaryListEl.innerHTML = set.map((f) => {
       const val = escapeHtml(String(rasaPretty(f, rasaTrip[f])));
@@ -171,10 +207,14 @@ function renderSummary() {
   summaryFillEl.style.width = `${(n / 6) * 100}%`;
   barCountEl.textContent = `${n}/6`;
   summaryBarEl.hidden = false;
-  // mobile bar route line
   const route = [rasaTrip.origin, rasaTrip.destination].filter(Boolean)
     .map((c) => `${flagFor(c)} ${c}`.trim()).join(" → ");
   barRouteEl.textContent = route || "New trip";
+  // Back/Edit only make sense once there's something to revise.
+  const back = document.getElementById("btn-back");
+  const edit = document.getElementById("btn-edit");
+  if (back) back.disabled = n === 0;
+  if (edit) edit.disabled = n === 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -358,13 +398,48 @@ function returnToAssistant() {
 function setDock(html) { dockEl.innerHTML = html; }
 function setDockHint(text) { setDock(`<p class="dock__hint">${escapeHtml(text)}</p>`); }
 
-// Add a flag in front of city quick-replies for a nicer city selector.
-function decorateButton(b) {
-  const m = b.payload && b.payload.match(/"(?:origin|destination)"\s*:\s*"([^"]+)"/);
-  const flag = m ? flagFor(m[1]) : "";
-  const title = escapeHtml(b.title);
-  return `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">` +
-         (flag ? `<span class="chip__flag" aria-hidden="true">${flag}</span>` : "") + title + `</button>`;
+function cityChip(name, field, hidden) {
+  const payload = escapeHtml(`/inform{"${field}": "${name}"}`);
+  return `<button type="button" class="chip chip--city${hidden ? " is-hidden" : ""}" data-rasa-payload="${payload}">` +
+         `<span class="chip__flag" aria-hidden="true">${flagFor(name)}</span>${escapeHtml(name)}</button>`;
+}
+
+// Full 12-city selector with a "More cities" expander; excludes the chosen origin.
+function buildCitySelector(field) {
+  const list = CITIES.filter((c) =>
+    !(field === "destination" && rasaTrip.origin && c.toLowerCase() === String(rasaTrip.origin).toLowerCase()));
+  const FIRST = 6;
+  const chips = list.map((c, i) => cityChip(c, field, i >= FIRST)).join("");
+  const more = list.length > FIRST
+    ? `<button type="button" class="chip chip--more" data-more-cities>More cities ▾</button>` : "";
+  return `<p class="dock__hint">Tap a city${field === "destination" ? " to travel to" : ""}, or type one.</p>` +
+         `<div class="choices" data-city-grid>${chips}${more}</div>`;
+}
+
+// Date range picker (start / end / flexible). Sends travel_date as text.
+function buildDatePicker() {
+  const today = new Date().toISOString().slice(0, 10);
+  return `
+    <p class="dock__hint">Pick your dates, or choose flexible.</p>
+    <div class="datepick">
+      <label class="datepick__field">Start
+        <input type="date" id="date-start" min="${today}" class="datepick__input" />
+      </label>
+      <label class="datepick__field">End
+        <input type="date" id="date-end" min="${today}" class="datepick__input" />
+      </label>
+      <div class="datepick__actions">
+        <button type="button" class="chip chip--primary" data-date-confirm>Use these dates</button>
+        <button type="button" class="chip" data-rasa-payload='/inform{"travel_date": "flexible"}'
+                data-user-label="I'm flexible">I'm flexible</button>
+      </div>
+      <p class="datepick__out" id="date-out" aria-live="polite"></p>
+    </div>`;
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function renderRasaResponses(responses) {
@@ -376,17 +451,28 @@ function renderRasaResponses(responses) {
     if (Array.isArray(msg.buttons)) buttons.push(...msg.buttons);
   });
 
-  // Don't offer the user's origin city as a destination (no same-city trip).
-  if (rasaTrip.origin) {
-    buttons = buttons.filter((b) => {
-      const m = b.payload && b.payload.match(/"destination"\s*:\s*"([^"]+)"/);
-      return !(m && m[1].toLowerCase() === String(rasaTrip.origin).toLowerCase());
-    });
+  // De-dupe identical buttons that arrive in the same batch.
+  const seen = new Set();
+  buttons = buttons.filter((b) => {
+    const key = (b.payload || "") + "|" + (b.title || "");
+    if (seen.has(key)) return false; seen.add(key); return true;
+  });
+
+  // Detect the current step from the button payloads.
+  const isCity = buttons.length && buttons.every((b) => /"(origin|destination)"\s*:/.test(b.payload || ""));
+  const isDate = buttons.some((b) => /"travel_date"\s*:\s*"flexible"/.test(b.payload || ""));
+
+  if (isCity) {
+    const field = /"origin"/.test(buttons[0].payload) ? "origin" : "destination";
+    setDock(buildCitySelector(field));
+    return;
   }
+  if (isDate) { setDock(buildDatePicker()); return; }
 
   if (buttons.length) {
-    setDock(`<p class="dock__hint">Tap an option, or type your answer below.</p>` +
-      `<div class="choices">${buttons.map(decorateButton).join("")}</div>`);
+    const chips = buttons.map((b) =>
+      `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(b.title)}</button>`).join("");
+    setDock(`<p class="dock__hint">Tap an option, or type your answer below.</p><div class="choices">${chips}</div>`);
   } else {
     setDockHint("Type your reply below, or use the controls above.");
   }
@@ -404,6 +490,7 @@ async function sendToRasa(message, userLabel) {
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     renderRasaResponses(await res.json());
+    refreshFromTracker();             // authoritative slot state for the summary
   } catch (err) {
     addBot("I couldn't reach the assistant backend. Make sure the Rasa server is running " +
            "(<code>rasa run --enable-api --cors \"*\"</code>) and the action server is up.");
@@ -421,6 +508,46 @@ document.addEventListener("click", (ev) => {
   if (!el) return;
   if (advisorMode) return;            // advisor mode pauses the planner
   sendToRasa(el.dataset.rasaPayload, el.dataset.userLabel || el.textContent.trim());
+});
+
+// Dock widgets: "More cities" expander + date-range confirm.
+dockEl.addEventListener("click", (ev) => {
+  const more = ev.target.closest("[data-more-cities]");
+  if (more) {
+    dockEl.querySelectorAll(".chip--city.is-hidden").forEach((c) => c.classList.remove("is-hidden"));
+    more.remove();
+    return;
+  }
+  const conf = ev.target.closest("[data-date-confirm]");
+  if (conf) {
+    const s = (document.getElementById("date-start") || {}).value;
+    const e = (document.getElementById("date-end") || {}).value;
+    const out = document.getElementById("date-out");
+    if (!s) { if (out) out.textContent = "Please choose a start date, or tap “I'm flexible”."; return; }
+    let label;
+    if (e && e >= s) {
+      const nights = Math.round((new Date(e) - new Date(s)) / 86400000);
+      label = `${fmtDate(s)} – ${fmtDate(e)} · ${nights} night${nights === 1 ? "" : "s"}`;
+    } else {
+      label = fmtDate(s);
+    }
+    sendToRasa(`/inform{"travel_date": "${label}"}`, label);
+  }
+});
+
+// Live preview of the chosen date range.
+dockEl.addEventListener("change", () => {
+  const sEl = document.getElementById("date-start");
+  const eEl = document.getElementById("date-end");
+  const out = document.getElementById("date-out");
+  if (!sEl || !out) return;
+  if (eEl && sEl.value) eEl.min = sEl.value;
+  if (sEl.value && eEl && eEl.value && eEl.value >= sEl.value) {
+    const nights = Math.round((new Date(eEl.value) - new Date(sEl.value)) / 86400000);
+    out.textContent = `${fmtDate(sEl.value)} – ${fmtDate(eEl.value)} · ${nights} night${nights === 1 ? "" : "s"}`;
+  } else if (sEl.value) {
+    out.textContent = fmtDate(sEl.value);
+  }
 });
 
 // "How we estimate" toggle inside carbon cards.
