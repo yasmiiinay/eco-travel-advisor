@@ -160,8 +160,22 @@ class ValidateTripPlanningForm(FormValidationAction):
             )
             return {"destination": None}
 
-        # Auto-correct close typos (e.g. "kopenhg" -> Copenhagen) and continue.
         city = dest["city"]
+
+        # Guard against a same-city trip (e.g. London -> London), which would
+        # otherwise produce a 0 km, 0 kg "London to London" plan.
+        origin = _canonical_origin(tracker.get_slot("origin"))
+        if origin and city.lower() == str(origin).strip().lower():
+            buttons = [b for b in DEST_BUTTONS
+                       if f'"{city}"' not in b["payload"]]
+            dispatcher.utter_message(
+                text=(f"Your destination can't be the same as your origin ({origin}). "
+                      "Please pick a different city to travel to."),
+                buttons=buttons,
+            )
+            return {"destination": None}
+
+        # Auto-correct close typos (e.g. "kopenhg" -> Copenhagen) and continue.
         if city.lower() != str(slot_value).strip().lower():
             dispatcher.utter_message(text=f"I understood that as {city}.")
         return {"destination": city}
@@ -172,7 +186,15 @@ class ValidateTripPlanningForm(FormValidationAction):
             return {"travel_date": None}
         if not slot_value or not str(slot_value).strip():
             return {"travel_date": None}
-        return {"travel_date": str(slot_value).strip()}
+        text = str(slot_value).strip()
+        # Reject a stray button payload captured as free text (e.g. the user tapped
+        # a city chip while a date was requested) so it never pollutes the slot.
+        if text.startswith("/") or "inform{" in text or '":"' in text:
+            dispatcher.utter_message(
+                text="When are you planning to travel? You can type the dates, or just say \"flexible\"."
+            )
+            return {"travel_date": None}
+        return {"travel_date": text}
 
     def validate_num_travellers(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         count = _parse_travellers(slot_value)

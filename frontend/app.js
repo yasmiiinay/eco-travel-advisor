@@ -614,7 +614,81 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-function addBotText(text) { addBot(escapeHtml(text).replace(/\n/g, "<br>")); }
+function addBotText(text) {
+  // Turn the backend's plain carbon labels into accessible colour pills
+  // (icon + word + colour), e.g. "(Low impact)" or "[High]".
+  let html = escapeHtml(text).replace(/\n/g, "<br>");
+  html = html
+    .replace(/\[Low\]|\(Low impact\)/g, bandHtml("green", "Low"))
+    .replace(/\[Medium\]|\(Medium impact\)/g, bandHtml("amber", "Medium"))
+    .replace(/\[High\]|\(High impact\)/g, bandHtml("red", "High"));
+  addBot(html);
+}
+
+/* --------------------------------------------------------------------------
+   Rasa-mode trip state — mirrors the six slots by parsing the payloads the UI
+   sends (button taps + control payloads), so the Trip Summary panel fills in
+   live without the backend having to emit slot values.
+   -------------------------------------------------------------------------- */
+const RASA_FIELDS = ["origin", "destination", "travel_date", "num_travellers", "budget", "sustainability_pref"];
+const FIELD_LABEL = {
+  origin: "From", destination: "To", travel_date: "Dates",
+  num_travellers: "Travellers", budget: "Budget", sustainability_pref: "Priority",
+};
+const FIELD_EDIT_TITLE = {
+  origin: "Origin", destination: "Destination", travel_date: "Travel dates",
+  num_travellers: "Travellers", budget: "Budget", sustainability_pref: "Preference",
+};
+const RASA_BUDGET_LABEL = { budget: "Budget (€)", mid: "Comfort (€€)", comfort: "Premium (€€€)" };
+const RASA_PREF_LABEL = {
+  low_carbon: "Lowest carbon", eco_certified: "Eco-certified stays",
+  local_culture: "Local community", balanced: "Balanced",
+};
+const rasaTrip = {};
+
+function rasaPretty(field, value) {
+  if (field === "budget") return RASA_BUDGET_LABEL[value] || value;
+  if (field === "sustainability_pref") return RASA_PREF_LABEL[value] || value;
+  if (field === "travel_date" && value === "flexible") return "Flexible";
+  return value;
+}
+
+// Inspect an outgoing message and keep rasaTrip in sync.
+function trackOutgoing(message) {
+  if (!message) return;
+  if (message === "/reset_trip") { RASA_FIELDS.forEach((f) => delete rasaTrip[f]); renderRasaSummary(); return; }
+  const edit = message.match(/^\/edit_answer\{[^}]*"field_to_edit"\s*:\s*"([^"]+)"/);
+  if (edit) { delete rasaTrip[edit[1]]; renderRasaSummary(); return; }
+  if (message.startsWith("/inform{")) {
+    try {
+      const obj = JSON.parse(message.slice(message.indexOf("{")));
+      Object.keys(obj).forEach((k) => { if (RASA_FIELDS.includes(k)) rasaTrip[k] = obj[k]; });
+      renderRasaSummary();
+    } catch (_) { /* free-text answers won't be JSON; ignored */ }
+  }
+}
+
+function renderRasaSummary() {
+  const set = RASA_FIELDS.filter((f) => rasaTrip[f] != null && rasaTrip[f] !== "");
+  const rows = set.map((f) => {
+    const val = escapeHtml(String(rasaPretty(f, rasaTrip[f])));
+    return `<li><span><b>${FIELD_LABEL[f]}:</b> ${val}</span>` +
+           `<button type="button" class="summary__edit" data-edit-field="${f}" ` +
+           `aria-label="Edit ${FIELD_LABEL[f]}" title="Edit">✎</button></li>`;
+  });
+  const progress = `<li class="summary__progress" aria-hidden="true">${set.length}/6</li>`;
+  summaryListEl.innerHTML = set.length ? progress + rows.join("") : "";
+  summaryEl.hidden = set.length === 0;
+}
+
+// Field chooser for the header "Edit answer" button — sends a field-specific
+// payload so the bare /edit_answer path (which collides with the form) is avoided.
+function openRasaEditMenu() {
+  const chips = RASA_FIELDS.map((f) =>
+    `<button type="button" class="chip" data-rasa-payload="${escapeHtml(`/edit_answer{"field_to_edit": "${f}"}`)}">${FIELD_EDIT_TITLE[f]}</button>`
+  ).join("");
+  setDock(`<p class="dock__hint">Which answer would you like to change?</p><div class="choices">${chips}</div>`);
+}
 
 // Forward-compatible: render custom card payloads if actions.py sends them
 // via dispatcher.utter_message(json_message={...}). Falls back to pretty JSON.
@@ -643,8 +717,17 @@ function renderRasaResponses(responses) {
     if (msg.custom) renderCustom(msg.custom);
     if (Array.isArray(msg.buttons)) buttons.push(...msg.buttons);
   });
-  if (buttons.length) {
-    setDock(`<div class="choices">${buttons.map((b) =>
+  // Don't offer the user's origin city as a destination option (prevents a
+  // same-city trip like London -> London).
+  let btns = buttons;
+  if (rasaTrip.origin) {
+    btns = btns.filter((b) => {
+      const m = b.payload && b.payload.match(/"destination"\s*:\s*"([^"]+)"/);
+      return !(m && m[1].toLowerCase() === String(rasaTrip.origin).toLowerCase());
+    });
+  }
+  if (btns.length) {
+    setDock(`<div class="choices">${btns.map((b) =>
       `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(b.title)}</button>`
     ).join("")}</div>`);
   } else {
@@ -655,6 +738,7 @@ function renderRasaResponses(responses) {
 // Send a message to Rasa. userLabel === false suppresses the user bubble
 // (used for the silent /greet trigger and for free text already echoed).
 async function sendToRasa(message, userLabel) {
+  trackOutgoing(message);                 // keep the Trip Summary panel in sync
   if (userLabel !== false) addUser(userLabel || message);
   setDock(`<p class="dock__hint">…</p>`);
   try {
@@ -678,6 +762,8 @@ async function sendToRasa(message, userLabel) {
 function bootRasa() {
   document.getElementById("btn-back").disabled = false;
   document.getElementById("btn-edit").disabled = false;
+  RASA_FIELDS.forEach((f) => delete rasaTrip[f]);
+  renderRasaSummary();
   sendToRasa("/greet", false);   // trigger the greeting with no user bubble
 }
 
@@ -686,6 +772,14 @@ dockEl.addEventListener("click", (ev) => {
   const btn = ev.target.closest("[data-rasa-payload]");
   if (!btn) return;
   sendToRasa(btn.dataset.rasaPayload, btn.textContent);
+});
+
+// Pencil icons in the Trip Summary panel re-open a specific field.
+summaryEl.addEventListener("click", (ev) => {
+  const btn = ev.target.closest("[data-edit-field]");
+  if (!btn || MODE !== "rasa") return;
+  const f = btn.dataset.editField;
+  sendToRasa(`/edit_answer{"field_to_edit": "${f}"}`, `Edit ${FIELD_LABEL[f].toLowerCase()}`);
 });
 
 /* --------------------------------------------------------------------------
@@ -697,7 +791,7 @@ document.getElementById("btn-back").addEventListener("click", () => {
   if (state.stepIndex > 0) goToStep(state.stepIndex - 1);
 });
 document.getElementById("btn-edit").addEventListener("click", () => {
-  if (MODE === "rasa") return sendToRasa("/edit_answer", "Edit an answer");
+  if (MODE === "rasa") return openRasaEditMenu();   // field-specific, avoids bare /edit_answer
   openEdit();
 });
 document.getElementById("btn-reset").addEventListener("click", () => {
