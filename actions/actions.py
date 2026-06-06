@@ -167,6 +167,37 @@ class ValidateTripPlanningForm(FormValidationAction):
     def name(self) -> Text:
         return "validate_trip_planning_form"
 
+    # --- Custom extraction for the two city slots ------------------------------
+    # origin and destination share the same city values, and Rasa's global
+    # from_entity auto-fill would let a city typed at one step overwrite the other
+    # slot (e.g. "londra" at the destination step clobbering the origin). These
+    # extract methods only fill a city into the slot that is *currently requested*,
+    # so the two can never cross-contaminate. This also covers the reset-trip case,
+    # because after a reset the form re-asks each slot in order.
+    _CONTROL = {"go_back", "edit_answer", "reset_trip", "request_human", "out_of_scope"}
+
+    def _extract_city(self, tracker, slot: Text) -> Dict[Text, Any]:
+        if tracker.get_slot("requested_slot") != slot:
+            return {}                                   # only fill the requested slot
+        msg = tracker.latest_message or {}
+        if (msg.get("intent", {}) or {}).get("name") in self._CONTROL:
+            return {}                                   # /go_back, /request_human, ... are not values
+        # Prefer an explicit entity for THIS slot (button payloads carry it).
+        for ent in msg.get("entities", []):
+            if ent.get("entity") == slot and ent.get("value"):
+                return {slot: ent["value"]}
+        # Otherwise take the free text the user typed for this requested slot.
+        text = (msg.get("text") or "").strip()
+        if text and not text.startswith("/"):
+            return {slot: text}
+        return {}
+
+    async def extract_origin(self, dispatcher, tracker, domain) -> Dict[Text, Any]:
+        return self._extract_city(tracker, "origin")
+
+    async def extract_destination(self, dispatcher, tracker, domain) -> Dict[Text, Any]:
+        return self._extract_city(tracker, "destination")
+
     def validate_origin(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
             dispatcher.utter_message(text="No problem - which city are you starting from?")
