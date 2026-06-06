@@ -55,6 +55,9 @@ slots:
           - bot_challenge
           - plan_trip
           - request_recommendations
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: origin
       - type: from_text
         not_intent: *control_intents
         conditions:
@@ -68,6 +71,9 @@ slots:
       - type: from_entity
         entity: destination
         not_intent: *control_intents
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: destination
       - type: from_text
         not_intent: *control_intents
         conditions:
@@ -81,6 +87,9 @@ slots:
       - type: from_entity
         entity: travel_date
         not_intent: *control_intents
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: travel_date
       - type: from_text
         not_intent: *control_intents
         conditions:
@@ -94,6 +103,9 @@ slots:
       - type: from_entity
         entity: num_travellers
         not_intent: *control_intents
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: num_travellers
       - type: from_text
         not_intent: *control_intents
         conditions:
@@ -107,6 +119,9 @@ slots:
       - type: from_entity
         entity: budget
         not_intent: *control_intents
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: budget
       - type: from_text
         not_intent: *control_intents
         conditions:
@@ -120,6 +135,9 @@ slots:
       - type: from_entity
         entity: sustainability_pref
         not_intent: *control_intents
+        conditions:
+          - active_loop: trip_planning_form
+            requested_slot: sustainability_pref
       - type: from_text
         not_intent: *control_intents
         conditions:
