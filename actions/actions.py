@@ -232,6 +232,16 @@ class ValidateTripPlanningForm(FormValidationAction):
                 text="When are you planning to travel? You can type the dates, or just say \"flexible\"."
             )
             return {"travel_date": None}
+        # Canonicalise "flexible" so the summary shows a clear label.
+        if text.lower() in ("flexible", "flexible dates", "i'm flexible", "im flexible", "flex"):
+            return {"travel_date": "Flexible dates"}
+        # Reject a bare number mis-routed from a budget/traveller answer (e.g. "65").
+        compact = text.replace(" ", "")
+        if compact.isdigit() and len(compact) <= 3:
+            dispatcher.utter_message(
+                text="That doesn't look like a date. Please choose a date range, or select \"Flexible dates\"."
+            )
+            return {"travel_date": None}
         return {"travel_date": text}
 
     def validate_num_travellers(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
@@ -409,15 +419,27 @@ class ActionRecommendPlan(Action):
                 origin, did, emissions_provider=carbon.climatiq_provider
             )
             if options:
-                opt_payload = [{
-                    "mode": o["mode"].title(),
-                    "icon": MODE_ICON.get(o["mode"], "•"),
-                    "duration_h": o["estimated_duration_hours"],
-                    "price_eur": o["estimated_price"],
-                    "carbon_kg": o["estimated_emissions_kg_per_person"],
-                    "status": _status(o["carbon_level"]),
-                    "recommended": idx == 0,
-                } for idx, o in enumerate(options)]
+                green_kg = options[0]["estimated_emissions_kg_per_person"] or 0
+                green_name = options[0]["mode"]
+                opt_payload = []
+                for idx, o in enumerate(options):
+                    # Attach the "high emission" context to the offending row only
+                    # (not as a global banner) — e.g. "≈ 8× the train".
+                    note = ""
+                    if o["carbon_level"] == "red" and green_kg > 0 and idx > 0:
+                        mult = round((o["estimated_emissions_kg_per_person"] or 0) / green_kg)
+                        if mult >= 2:
+                            note = f"≈ {mult}× the {green_name} on this route"
+                    opt_payload.append({
+                        "mode": o["mode"].title(),
+                        "icon": MODE_ICON.get(o["mode"], "•"),
+                        "duration_h": o["estimated_duration_hours"],
+                        "price_eur": o["estimated_price"],
+                        "carbon_kg": o["estimated_emissions_kg_per_person"],
+                        "status": _status(o["carbon_level"]),
+                        "recommended": idx == 0,
+                        "note": note,
+                    })
                 fb = "; ".join(
                     f"{o['mode']} ~{o['estimated_emissions_kg_per_person']}kg, "
                     f"{o['estimated_duration_hours']}h, ~EUR{o['estimated_price']}"
@@ -428,7 +450,6 @@ class ActionRecommendPlan(Action):
                     "route": f"{origin} → {dest['city']}",
                     "sorted_by": "lowest carbon",
                     "options": opt_payload,
-                    "disclaimer": CARBON_DISCLAIMER,
                     "fallback_text": "Transport options (lowest emissions first): " + fb,
                 })
 
@@ -508,33 +529,29 @@ class ActionHighEmissionAlert(Action):
         options, _ = repository.get_transport_options(
             origin, dest["destination_id"], emissions_provider=carbon.climatiq_provider
         )
-        high = next((o for o in options if o["carbon_level"] == "red"), None)
-        if not high:
-            return []  # nothing high-emission: do not over-warn
+        if not options:
+            return []
 
-        greener = next((o for o in options if o["carbon_level"] != "red"), None)
+        # Only raise a *global* alert when even the greenest available option is
+        # high emission (e.g. a route with no realistic rail/coach). When a low-
+        # carbon option exists, the high-emission modes already carry a red pill
+        # and an inline note in the transport card — no need to alarm the user.
+        greenest = options[0]
+        if greenest["carbon_level"] != "red":
+            return []
+
         body = (
-            f"Travelling by {high['mode']} is high emission "
-            f"(about {high['estimated_emissions_kg_per_person']} kg CO₂e per person)."
+            f"For this route, even the lowest-carbon option ({greenest['mode']}, "
+            f"about {greenest['estimated_emissions_kg_per_person']} kg CO₂e per person) is "
+            "high emission. You may want to reconsider the trip or include a carbon offset."
         )
-        action_btn = None
-        if greener:
-            saved = round(high["estimated_emissions_kg_per_person"]
-                          - greener["estimated_emissions_kg_per_person"], 1)
-            body += (
-                f" A lower-carbon alternative is {greener['mode']} "
-                f"(~{greener['estimated_emissions_kg_per_person']} kg), "
-                f"saving about {saved} kg per person."
-            )
-            action_btn = {"label": f"See greener {greener['mode']} option",
-                          "payload": "/request_recommendations"}
         dispatcher.utter_message(json_message={
             "type": "alert",
             "level": "red",
             "icon": "⚠",
-            "title": "High-emission option ahead",
+            "title": "This route is high emission",
             "body": body,
-            "action": action_btn,
+            "action": None,
             "fallback_text": body,
         })
         return []

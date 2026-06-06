@@ -21,7 +21,6 @@ stories:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
 
   # ---- DC-02: affirming the greeting starts the form ----
   #     (Destination typos are now auto-corrected inside validate_destination,
@@ -54,7 +53,6 @@ stories:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
       - intent: edit_answer
       - action: action_edit_answer
       - slot_was_set:
@@ -91,7 +89,6 @@ stories:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
 
   # ---- 8. Human handover with full context, requested mid-form ----
   - story: request human advisor during planning

@@ -43,7 +43,6 @@ rules:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
 
   # 5. Out-of-scope handling
   - rule: Handle out-of-scope questions
@@ -103,4 +102,3 @@ rules:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer

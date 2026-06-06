@@ -95,3 +95,27 @@ Run each case in the UI (or `rasa shell`), then re-capture the tracker and run
 Verification method: automated `rasa test core --stories tests/test_stories.yml` (all stories passed) +
 a clean interactive REST run (unique sender + `/restart` per case) on 2026-06-05. DC-08 is a known,
 optional polish item, not a regression.
+
+---
+
+## v2.1 stabilization checks (UX + logic)
+
+Run in the connected UI after `rasa train` + restarting both servers.
+
+| ID | Steps | Expected |
+|---|---|---|
+| S-01 | At the **travel_date** step, type `65` | Rejected: "That doesn't look like a date. Please choose a date range, or select Flexible dates." Slot NOT set to 65. |
+| S-02 | At the **budget** step, type `65` (or `€65`, `65 per day`) | Accepted: "about €65/day, so I'll use the Budget tier." Summary shows `€65/day · Budget`. |
+| S-03 | At the **budget** step, type `100` / `around 150 per day` | 100 → Comfort/Mid tier; 150 → Mid; >150 → Premium/Comfort. Summary shows amount · tier. |
+| S-04 | Date step → tap **I'm flexible** | Summary shows **Flexible dates** (not "flexible" or a raw value). |
+| S-05 | Date step → pick start + end | Summary shows `02 Jul 2026 – 15 Jul 2026 · 13 nights`. |
+| S-06 | Complete a trip with **Lowest carbon**, greenest = train/coach | **No** global "high-emission" banner. The flight row in the transport card shows a red pill + inline "≈ N× the train" note. |
+| S-07 | Inspect a full results batch | Carbon disclaimer appears **once** (on the carbon card), not after every message. |
+| S-08 | Chatbot mode (no handover yet) | **Return to assistant** button is hidden. It only appears after tapping Talk to a human. |
+| S-09 | Send any message | A typing indicator (three dots) shows; send + quick replies are disabled until the reply arrives, then re-enabled. |
+| S-10 | Kill the backend, send a message | Friendly error + a **↻ Retry** button that re-sends. |
+| S-11 | `hello` / `hi` / `hey` | Welcome message + "Plan a trip" button every time. |
+| S-12 | After greeting, `yes ready` / `start planning` / `let's go` | The trip form starts. |
+| S-13 | Fresh load (no trip yet) | **Back** and **Edit** are disabled. |
+| S-14 | Any step | One prompt + one button group; no duplicated questions or buttons. |
+| S-15 | Throughout | "Your trip" summary fills from the **tracker** (GET /conversations/{id}/tracker): From/To/Dates/Travellers/Budget/Priority all reliable, x/6 correct. |

@@ -41,6 +41,8 @@ const TRACKER_URL = `${RASA_BASE}/conversations/${encodeURIComponent(SENDER)}/tr
 const appEl = document.getElementById("app");
 const chatEl = document.getElementById("chat");
 const dockEl = document.getElementById("dock");
+const textInputEl = document.getElementById("text-input");
+const sendBtnEl = document.querySelector(".composer__send");
 const summaryListEl = document.getElementById("summary-list");
 const summaryCountEl = document.getElementById("summary-count");
 const summaryFillEl = document.getElementById("summary-progress-fill");
@@ -263,12 +265,15 @@ function renderTransport(c) {
   const rows = (c.options || []).map((o) => {
     const reco = o.recommended
       ? `<span class="reco-ribbon">Recommended</span>` : "";
+    const note = o.note
+      ? `<div class="t-note">⚠ ${escapeHtml(o.note)}</div>` : "";
     return `<div class="t-row${o.recommended ? " t-row--reco" : ""}">
       <div class="t-mode"><span class="t-mode__icon">${escapeHtml(o.icon || "•")}</span> ${escapeHtml(o.mode)} ${reco}</div>
       <div class="t-meta">
         <span><b>${escapeHtml(String(o.duration_h))}</b> h</span>
         <span>~€<b>${escapeHtml(String(o.price_eur))}</b></span>
         <span><b>${escapeHtml(String(o.carbon_kg))}</b> kg CO₂e</span>
+        ${note}
       </div>
       <div class="t-right">${pill(o.status)}</div>
     </div>`;
@@ -281,7 +286,7 @@ function renderTransport(c) {
       </div>
       <p class="card__sub">${escapeHtml(c.route || "")}</p>
       <div class="compare">${rows}</div>
-      <p class="disclaimer">${escapeHtml(c.disclaimer || "")}</p>
+      ${c.disclaimer ? `<p class="disclaimer">${escapeHtml(c.disclaimer)}</p>` : ""}
     </div>`);
 }
 
@@ -478,10 +483,36 @@ function renderRasaResponses(responses) {
   }
 }
 
+// ---- "thinking" indicator + input lock while waiting on Rasa ----
+let thinkingEl = null, thinkingTimer = null, lastSent = null;
+function showThinking() {
+  hideThinking();
+  thinkingEl = appendMsg("msg--bot",
+    `<div class="bubble typing" aria-label="Eco-Travel Advisor is thinking"><span></span><span></span><span></span></div>`);
+  textInputEl.disabled = true;
+  sendBtnEl.disabled = true;
+  dockEl.classList.add("is-busy");
+  thinkingTimer = setTimeout(() => {
+    if (thinkingEl) {
+      thinkingEl.classList.remove("msg--bot");
+      thinkingEl.querySelector(".bubble").outerHTML =
+        `<div class="bubble">Still checking your trip options…</div>`;
+    }
+  }, 8000);
+}
+function hideThinking() {
+  if (thinkingTimer) { clearTimeout(thinkingTimer); thinkingTimer = null; }
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+  textInputEl.disabled = false;
+  sendBtnEl.disabled = false;
+  dockEl.classList.remove("is-busy");
+}
+
 async function sendToRasa(message, userLabel) {
+  lastSent = { message };
   trackOutgoing(message);
   if (userLabel !== false) addUser(userLabel || message);
-  setDockHint("…");
+  showThinking();
   try {
     const res = await fetch(RASA_REST_URL, {
       method: "POST",
@@ -489,12 +520,14 @@ async function sendToRasa(message, userLabel) {
       body: JSON.stringify({ sender: SENDER, message }),
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    renderRasaResponses(await res.json());
+    const data = await res.json();
+    hideThinking();
+    renderRasaResponses(data);
     refreshFromTracker();             // authoritative slot state for the summary
   } catch (err) {
-    addBot("I couldn't reach the assistant backend. Make sure the Rasa server is running " +
-           "(<code>rasa run --enable-api --cors \"*\"</code>) and the action server is up.");
-    setDockHint("Backend not reachable.");
+    hideThinking();
+    addBot("I couldn't reach the assistant just now. Please check the connection and try again.");
+    setDock(`<div class="choices"><button type="button" class="chip chip--primary" data-retry>↻ Retry</button></div>`);
   }
 }
 
@@ -510,8 +543,10 @@ document.addEventListener("click", (ev) => {
   sendToRasa(el.dataset.rasaPayload, el.dataset.userLabel || el.textContent.trim());
 });
 
-// Dock widgets: "More cities" expander + date-range confirm.
+// Dock widgets: retry, "More cities" expander, date-range confirm.
 dockEl.addEventListener("click", (ev) => {
+  const retry = ev.target.closest("[data-retry]");
+  if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
   const more = ev.target.closest("[data-more-cities]");
   if (more) {
     dockEl.querySelectorAll(".chip--city.is-hidden").forEach((c) => c.classList.remove("is-hidden"));

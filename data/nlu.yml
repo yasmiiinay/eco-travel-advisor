@@ -425,6 +425,10 @@ nlu:
     - roughly [80](budget) euros daily
     - [60](budget) a day is my max
     - keep it under [70](budget)
+    - [65](budget)
+    - [65](budget) per day
+    - my daily budget is [80](budget)
+    - around [150](budget) per day
     - a [standard]{"entity": "budget", "value": "mid"} budget
     - somewhere in the [middle]{"entity": "budget", "value": "mid"}
     - go [premium]{"entity": "budget", "value": "comfort"}

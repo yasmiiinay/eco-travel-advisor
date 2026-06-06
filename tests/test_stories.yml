@@ -72,7 +72,6 @@ stories:
       - action: action_estimate_carbon
       - action: action_recommend_plan
       - action: action_high_emission_alert
-      - action: utter_carbon_disclaimer
 
   - story: held-out goodbye
     steps:

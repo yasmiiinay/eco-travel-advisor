@@ -39,6 +39,11 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 
+/* Make the HTML `hidden` attribute authoritative (author display rules on .ctrl
+   etc. would otherwise override it — this kept the Return-to-assistant button
+   visible in chatbot mode). */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background:
@@ -187,6 +192,17 @@ body {
 }
 .dock__hint { margin: 0 0 8px; font-size: .76rem; color: var(--muted); font-weight: 600; }
 .choices { display: flex; flex-wrap: wrap; gap: 9px; }
+.dock.is-busy { opacity: .55; pointer-events: none; }
+
+/* "thinking" typing indicator */
+.typing { display: inline-flex; gap: 5px; align-items: center; min-height: 14px; }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  .typing span { animation: blink 1.2s infinite both; }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+}
 
 .chip {
   background: var(--surface-2);
@@ -340,6 +356,7 @@ body {
 .t-mode__icon { font-size: 1.2rem; }
 .t-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .8rem; color: var(--muted); }
 .t-meta b { color: var(--ink); }
+.t-note { color: var(--red); font-weight: 700; font-size: .75rem; width: 100%; margin-top: 1px; }
 .t-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 
 /* ---------------- Carbon estimate card ---------------- */
