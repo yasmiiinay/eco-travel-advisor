@@ -273,12 +273,15 @@ function renderTransport(c) {
       ? `<span class="reco-ribbon">Recommended</span>` : "";
     const note = o.note
       ? `<div class="t-note">⚠ ${escapeHtml(o.note)}</div>` : "";
+    const live = o.live_flight
+      ? `<span class="t-live" title="Live flight data (Aviationstack)">✈ ${escapeHtml(o.live_flight)}</span>` : "";
     return `<div class="t-row${o.recommended ? " t-row--reco" : ""}">
       <div class="t-mode"><span class="t-mode__icon">${escapeHtml(o.icon || "•")}</span> ${escapeHtml(o.mode)} ${reco}</div>
       <div class="t-meta">
         <span><b>${escapeHtml(String(o.duration_h))}</b> h</span>
         <span>~€<b>${escapeHtml(String(o.price_eur))}</b></span>
         <span><b>${escapeHtml(String(o.carbon_kg))}</b> kg CO₂e</span>
+        ${live}
         ${note}
       </div>
       <div class="t-right">${pill(o.status)}</div>

@@ -32,3 +32,22 @@ Climatiq API (live)  →  NeonDB stored factor  →  local JSON factor  →  una
 
 **Smoke test:** `python actions/carbon.py` (or notebook section 9b) — runs the same with or without a
 key and prints `data_source` for each mode.
+
+## Flight data API (Aviationstack)
+
+A second, optional external API enriches the **flight** transport option with a real example flight
+(flight number + airline) for the route. It is used in place of the Amadeus sandbox (which is being
+decommissioned on 2026-07-17); Aviationstack does not offer hotel data, so the curated hotel dataset is
+retained (see `docs/api-integration-decision.md`).
+
+- **Optional by design.** Without `AVIATIONSTACK_API_KEY` the flight row simply omits the live-flight line.
+- **Configuration:** set `AVIATIONSTACK_API_KEY` (Colab Secrets / `.env`). Read from the environment only,
+  never printed or committed. Free plan: HTTP endpoint, `access_key` query param, ~500 requests/month
+  (results are cached per route to stay within quota).
+- **Safety:** short timeout; any error, timeout, `429`, missing IATA mapping, or empty result returns
+  nothing and the card renders without the live line (graceful fallback).
+- **Weighted ranking.** Transport options are ranked by a **weighted scoring function** that combines
+  carbon impact and price, with the weights chosen by the user's sustainability preference
+  (e.g. *lowest carbon* weights carbon 0.8 / price 0.2; *balanced* weights 0.5 / 0.5).
+
+**Smoke test:** `python actions/aviation.py` — prints `None` (correct fallback) when no key is set.

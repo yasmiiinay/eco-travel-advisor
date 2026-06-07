@@ -60,7 +60,10 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Complexity:** Low, but the data (live schedules/status) is **not** what a carbon-planner needs.
 - **Reliability risk:** Medium (tiny free cap; HTTPS restricted on free plan historically).
 - **Fallback:** Curated transport rows (already in seed data).
-- **Decision:** **Future work** — adds little to sustainability planning.
+- **Decision:** **IMPLEMENTED** (`actions/aviation.py`) as the assignment's external *flight data* API,
+  in place of the decommissioning Amadeus sandbox. It enriches the flight row with a real example
+  flight (number + airline); env key only, timeout, per-route cache, and a None-returning fallback so
+  the card renders normally without a key. Hotels remain curated (Aviationstack has no hotel data).
 
 ### OpenSky Network
 - **Data:** live aircraft positions / tracks (research, non-commercial).

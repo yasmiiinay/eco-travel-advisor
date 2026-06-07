@@ -357,6 +357,7 @@ body {
 .t-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .8rem; color: var(--muted); }
 .t-meta b { color: var(--ink); }
 .t-note { color: var(--red); font-weight: 700; font-size: .75rem; width: 100%; margin-top: 1px; }
+.t-live { color: var(--accent); font-weight: 700; font-size: .74rem; }
 .t-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 
 /* ---------------- Carbon estimate card ---------------- */

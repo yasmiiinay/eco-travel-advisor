@@ -21,6 +21,7 @@ from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import ActiveLoop, AllSlotsReset, EventType, FollowupAction, SlotSet
 from rasa_sdk.types import DomainDict
 
+import aviation
 import carbon
 import repository
 
@@ -42,6 +43,35 @@ SOURCE_LABEL = {
     "json_fallback": "stored factors (offline data)",
     "unavailable": "unavailable",
 }
+
+# Weights for the composite ranking score, chosen by the user's sustainability
+# preference. This is the assignment's "weighted scoring function that combines
+# carbon impact, price, and user-stated preferences": the preference selects the
+# weights, and score (lower = better) = w_carbon*norm(carbon) + w_price*norm(price).
+PREF_WEIGHTS = {
+    "low_carbon":    {"carbon": 0.80, "price": 0.20},
+    "eco_certified": {"carbon": 0.70, "price": 0.30},
+    "balanced":      {"carbon": 0.50, "price": 0.50},
+    "local_culture": {"carbon": 0.50, "price": 0.50},
+}
+DEFAULT_WEIGHTS = {"carbon": 0.50, "price": 0.50}
+
+
+def _weighted_transport_rank(options: list, preference) -> list:
+    """Rank transport options by the composite weighted score (carbon + price,
+    weighted by preference). Returns a new best-first list; does not mutate input."""
+    if not options:
+        return []
+    w = PREF_WEIGHTS.get(preference, DEFAULT_WEIGHTS)
+    max_c = max((o.get("estimated_emissions_kg_per_person") or 0) for o in options) or 1
+    max_p = max((o.get("estimated_price") or 0) for o in options) or 1
+
+    def _score(o):
+        nc = (o.get("estimated_emissions_kg_per_person") or 0) / max_c
+        np = (o.get("estimated_price") or 0) / max_p
+        return w["carbon"] * nc + w["price"] * np
+
+    return sorted(options, key=_score)
 
 
 def _status(level: Optional[str]) -> Dict[Text, Any]:
@@ -460,18 +490,23 @@ class ActionRecommendPlan(Action):
                 origin, did, emissions_provider=carbon.climatiq_provider
             )
             if options:
-                green_kg = options[0]["estimated_emissions_kg_per_person"] or 0
-                green_name = options[0]["mode"]
+                # Greenest (absolute lowest carbon) — used only for the "N× the
+                # greenest" note on high-emission rows.
+                greenest = min(options, key=lambda o: o.get("estimated_emissions_kg_per_person") or 0)
+                green_kg = greenest["estimated_emissions_kg_per_person"] or 0
+                green_name = greenest["mode"]
+                # Rank by the weighted score (carbon + price, weighted by preference).
+                ranked = _weighted_transport_rank(options, preference)
+                # Optional live flight metadata (Aviationstack) for the flight row.
+                flight_info = aviation.get_flight_sample(origin, dest["city"])
                 opt_payload = []
-                for idx, o in enumerate(options):
-                    # Attach the "high emission" context to the offending row only
-                    # (not as a global banner) — e.g. "≈ 8× the train".
+                for idx, o in enumerate(ranked):
                     note = ""
-                    if o["carbon_level"] == "red" and green_kg > 0 and idx > 0:
+                    if o["carbon_level"] == "red" and green_kg > 0 and o["mode"] != green_name:
                         mult = round((o["estimated_emissions_kg_per_person"] or 0) / green_kg)
                         if mult >= 2:
                             note = f"≈ {mult}× the {green_name} on this route"
-                    opt_payload.append({
+                    row = {
                         "mode": o["mode"].title(),
                         "icon": MODE_ICON.get(o["mode"], "•"),
                         "duration_h": o["estimated_duration_hours"],
@@ -480,18 +515,21 @@ class ActionRecommendPlan(Action):
                         "status": _status(o["carbon_level"]),
                         "recommended": idx == 0,
                         "note": note,
-                    })
+                    }
+                    if o["mode"] == "flight" and flight_info:
+                        row["live_flight"] = flight_info        # e.g. "AF1234 · Air France"
+                    opt_payload.append(row)
                 fb = "; ".join(
                     f"{o['mode']} ~{o['estimated_emissions_kg_per_person']}kg, "
                     f"{o['estimated_duration_hours']}h, ~EUR{o['estimated_price']}"
-                    for o in options
+                    for o in ranked
                 )
                 dispatcher.utter_message(json_message={
                     "type": "transport_comparison",
                     "route": f"{origin} → {dest['city']}",
-                    "sorted_by": "lowest carbon",
+                    "sorted_by": f"your priority ({pref_label})",
                     "options": opt_payload,
-                    "fallback_text": "Transport options (lowest emissions first): " + fb,
+                    "fallback_text": "Transport options ranked for your priority: " + fb,
                 })
 
         # --- Eco-hotels card group ---
