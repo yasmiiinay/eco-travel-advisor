@@ -104,7 +104,8 @@ Run in the connected UI after `rasa train` + restarting both servers.
 
 | ID | Steps | Expected |
 |---|---|---|
-| S-01 | At the **travel_date** step, type `65` | Rejected: "That doesn't look like a date. Please choose a date range, or select Flexible dates." Slot NOT set to 65. |
+| S-01 | At the **travel_date** step, type `65` (or `100`) | Rejected (not a plausible date or trip length); slot not set. |
+| S-01b | At the **travel_date** step, type `5` / `5 days` / `2 weeks` | Interpreted as a flexible trip length → `Flexible · 4–7 days` / `Flexible · 8+ days`; no re-ask. A real date like `12 June` is left untouched. |
 | S-02 | At the **budget** step, type `65` (or `€65`, `65 per day`) | Accepted: "about €65/day, so I'll use the Budget tier." Summary shows `€65/day · Budget`. |
 | S-03 | At the **budget** step, type `100` / `around 150 per day` | 100 → Comfort/Mid tier; 150 → Mid; >150 → Premium/Comfort. Summary shows amount · tier. |
 | S-04 | Date step → tap **I'm flexible** | Summary shows **Flexible dates** (not "flexible" or a raw value). |

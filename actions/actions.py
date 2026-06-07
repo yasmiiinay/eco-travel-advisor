@@ -304,13 +304,27 @@ class ValidateTripPlanningForm(FormValidationAction):
         # Canonicalise "flexible" so the summary shows a clear label.
         if text.lower() in ("flexible", "flexible dates", "i'm flexible", "im flexible", "flex"):
             return {"travel_date": "Flexible dates"}
-        # Reject a bare number mis-routed from a budget/traveller answer (e.g. "65").
+        # Interpret a number (or an "<n> days/nights/weeks" phrase) as a flexible
+        # trip length, e.g. "5" / "5 days" -> Flexible · 4–7 days. A real date like
+        # "12 June" is NOT bare digits, so it is left untouched.
+        low = text.lower()
         compact = text.replace(" ", "")
-        if compact.isdigit() and len(compact) <= 3:
-            dispatcher.utter_message(
-                text="That doesn't look like a date. Please choose a date range, or select \"Flexible dates\"."
-            )
-            return {"travel_date": None}
+        has_duration_word = any(w in low for w in ("day", "night", "week"))
+        if compact.isdigit() or has_duration_word:
+            n = _parse_budget_amount(text)          # reuse: extracts the first integer
+            if n and "week" in low:
+                n *= 7
+            if n and 1 <= n <= 30:
+                bucket = ("weekend (2–3 days)" if n <= 3
+                          else "4–7 days" if n <= 7
+                          else "8+ days")
+                return {"travel_date": f"Flexible · {bucket}"}
+            if compact.isdigit():                   # a bare number that isn't a plausible length
+                dispatcher.utter_message(
+                    text=("That doesn't look like a date. Give a date range, choose "
+                          "\"Flexible dates\", or say how many days (e.g. \"5 days\").")
+                )
+                return {"travel_date": None}
         return {"travel_date": text}
 
     def validate_num_travellers(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
