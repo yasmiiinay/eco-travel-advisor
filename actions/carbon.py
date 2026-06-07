@@ -71,6 +71,13 @@ CLIMATIQ_SEARCH_QUERY = {
 # most once per mode per process.
 _RESOLVED_ACTIVITY: dict = {}
 
+# Cache of successful per-passenger estimates, keyed by (mode, rounded km). One
+# trip triggers the same (mode, route) lookup several times across actions; this
+# keeps live API usage to ~one call per mode per route per process — protecting
+# the free-tier quota and keeping the source consistent within a plan. Only
+# successful values are cached, so a transient failure can still recover later.
+_ESTIMATE_CACHE: dict = {}
+
 # Source-aware disclaimer wording (requirement: make provenance explicit).
 DISCLAIMER_CLIMATIQ = (
     "Carbon values are calculated using Climatiq API emission factors. Indicative "
@@ -163,12 +170,21 @@ def _climatiq_per_passenger(mode: str, distance_km: float) -> Optional[float]:
     if requests is None or not is_climatiq_configured() or not distance_km:
         return None
 
+    # 0) cached successful estimate for this (mode, distance)
+    cache_key = (mode, int(round(distance_km)))
+    if cache_key in _ESTIMATE_CACHE:
+        return _ESTIMATE_CACHE[cache_key]
+
+    def _cache(value: float) -> float:
+        _ESTIMATE_CACHE[cache_key] = value
+        return value
+
     # 1) cached known-good id
     cached = _RESOLVED_ACTIVITY.get(mode)
     if cached:
         co2e = _climatiq_estimate(cached, distance_km)
         if co2e is not None:
-            return co2e
+            return _cache(co2e)
 
     # 2) first-guess id
     guess = CLIMATIQ_ACTIVITY.get(mode)
@@ -176,7 +192,7 @@ def _climatiq_per_passenger(mode: str, distance_km: float) -> Optional[float]:
         co2e = _climatiq_estimate(guess, distance_km)
         if co2e is not None:
             _RESOLVED_ACTIVITY[mode] = guess
-            return co2e
+            return _cache(co2e)
 
     # 3) Search API -> retry once
     found = _climatiq_search_activity(mode)
@@ -184,9 +200,9 @@ def _climatiq_per_passenger(mode: str, distance_km: float) -> Optional[float]:
         co2e = _climatiq_estimate(found, distance_km)
         if co2e is not None:
             _RESOLVED_ACTIVITY[mode] = found
-            return co2e
+            return _cache(co2e)
 
-    return None
+    return None  # not cached, so a later call can retry
 
 
 def climatiq_provider(mode: str, distance_km: float) -> Optional[float]:
