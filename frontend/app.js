@@ -461,7 +461,7 @@ function buildFlexLengths() {
   const chips = opts.map((o) =>
     `<button type="button" class="chip" data-rasa-payload="${escapeHtml(`/inform{"travel_date": "${o.value}"}`)}" ` +
     `data-user-label="${escapeHtml(o.label)}">${escapeHtml(o.label)}</button>`).join("");
-  return `<p class="dock__hint">Roughly how long is the trip?</p><div class="choices">${chips}</div>`;
+  return `<p class="dock__hint">Tap a length, or type how many days (e.g. “5”).</p><div class="choices">${chips}</div>`;
 }
 
 function fmtDate(iso) {
@@ -570,7 +570,12 @@ dockEl.addEventListener("click", (ev) => {
   const retry = ev.target.closest("[data-retry]");
   if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
   const flex = ev.target.closest("[data-flex-length]");
-  if (flex) { setDock(buildFlexLengths()); return; }   // ask trip length before flexible
+  if (flex) {                                          // flexible -> ask trip length (no re-ask of dates)
+    addUser("I'm flexible");
+    addBot("Sure — roughly how long is the trip?");
+    setDock(buildFlexLengths());
+    return;
+  }
   const more = ev.target.closest("[data-more-cities]");
   if (more) {
     dockEl.querySelectorAll(".chip--city.is-hidden").forEach((c) => c.classList.remove("is-hidden"));
