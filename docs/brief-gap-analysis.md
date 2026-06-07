@@ -110,6 +110,16 @@ Status vs the brief’s wording:
 
 ---
 
+## Future enhancements (for the report's "opportunities for innovation")
+
+- **Budget-aware smart date suggestion.** When the user is *flexible*, ask a rough trip length
+  (implemented: Weekend / Short / Long) and then, given the budget, suggest the cheapest date window
+  by querying a **date-priced** API (e.g. Amadeus Flight Offers). Not built now because our prices are
+  static per route (no date-varying pricing), and inventing a "cheapest date" without real data would
+  breach the transparency/anti-greenwashing requirement. A strong design-thinking / innovation point.
+- Live transit schedules (Transitland/Navitia), routed distances (OpenRouteService), GPS geocoding
+  (OpenCage) — all evaluated in `api-integration-decision.md`, kept as future work.
+
 ## What is genuinely solid already
 Rasa NLU+Core, adaptive multi-turn form, 12-city dataset, NeonDB→JSON fallback, nine custom actions,
 **live Climatiq integration** with provenance + graceful degradation, modern connected v2 UI

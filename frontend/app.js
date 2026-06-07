@@ -444,11 +444,24 @@ function buildDatePicker() {
       </label>
       <div class="datepick__actions">
         <button type="button" class="chip chip--primary" data-date-confirm>Use these dates</button>
-        <button type="button" class="chip" data-rasa-payload='/inform{"travel_date": "flexible"}'
-                data-user-label="I'm flexible">I'm flexible</button>
+        <button type="button" class="chip" data-flex-length>I'm flexible</button>
       </div>
       <p class="datepick__out" id="date-out" aria-live="polite"></p>
     </div>`;
+}
+
+// When the user is flexible, capture a rough trip length so the summary still
+// shows something concrete (and a future budget-aware date search has a window).
+function buildFlexLengths() {
+  const opts = [
+    { label: "Weekend (2–3 days)", value: "Flexible · weekend (2–3 days)" },
+    { label: "Short (4–7 days)",   value: "Flexible · 4–7 days" },
+    { label: "Long (8+ days)",     value: "Flexible · 8+ days" },
+  ];
+  const chips = opts.map((o) =>
+    `<button type="button" class="chip" data-rasa-payload="${escapeHtml(`/inform{"travel_date": "${o.value}"}`)}" ` +
+    `data-user-label="${escapeHtml(o.label)}">${escapeHtml(o.label)}</button>`).join("");
+  return `<p class="dock__hint">Roughly how long is the trip?</p><div class="choices">${chips}</div>`;
 }
 
 function fmtDate(iso) {
@@ -556,6 +569,8 @@ document.addEventListener("click", (ev) => {
 dockEl.addEventListener("click", (ev) => {
   const retry = ev.target.closest("[data-retry]");
   if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
+  const flex = ev.target.closest("[data-flex-length]");
+  if (flex) { setDock(buildFlexLengths()); return; }   // ask trip length before flexible
   const more = ev.target.closest("[data-more-cities]");
   if (more) {
     dockEl.querySelectorAll(".chip--city.is-hidden").forEach((c) => c.classList.remove("is-hidden"));
