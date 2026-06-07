@@ -35,6 +35,14 @@ LEVEL_ICON = {"green": "✓", "amber": "!", "red": "⚠"}
 MODE_ICON = {"flight": "✈️", "train": "🚆", "coach": "🚌", "car": "🚗", "ferry": "⛴️"}
 CARBON_DISCLAIMER = "Estimates only — actual emissions vary with occupancy, route and operator."
 
+# Human-friendly provenance label for the carbon card (which data_source produced it).
+SOURCE_LABEL = {
+    "climatiq": "Climatiq API",
+    "neondb": "stored factors (database)",
+    "json_fallback": "stored factors (offline data)",
+    "unavailable": "unavailable",
+}
+
 
 def _status(level: Optional[str]) -> Dict[Text, Any]:
     """A colour-band status object that never relies on colour alone."""
@@ -408,7 +416,9 @@ class ActionEstimateCarbon(Action):
             "greenest_mode": greenest["mode"],
             "greenest_icon": MODE_ICON.get(greenest["mode"], "•"),
             "status": _status(greenest["carbon_level"]),
-            "disclaimer": CARBON_DISCLAIMER,
+            "source": source,
+            "source_label": SOURCE_LABEL.get(source, source),
+            "disclaimer": estimate["disclaimer"],
             "fallback_text": fallback,
         })
         return [

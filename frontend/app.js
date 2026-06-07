@@ -244,6 +244,11 @@ function renderCarbon(c) {
   const lvl = (c.status && c.status.level) || "green";
   const cls = lvl === "red" ? " carbon--red" : lvl === "amber" ? " carbon--amber" : "";
   const range = Array.isArray(c.range_kg) ? ` <span class="carbon__sub">(${c.range_kg[0]}–${c.range_kg[1]})</span>` : "";
+  // Provenance chip: live Climatiq vs stored factors.
+  const live = c.source === "climatiq";
+  const srcBadge = c.source_label
+    ? `<span class="src-chip ${live ? "src-chip--live" : ""}">${live ? "◆ " : ""}Source: ${escapeHtml(c.source_label)}</span>`
+    : "";
   addFull(`
     <div class="card carbon${cls}">
       <div class="card__head">
@@ -253,6 +258,7 @@ function renderCarbon(c) {
       <div class="carbon__big">≈ ${escapeHtml(String(c.total_kg))} ${escapeHtml(c.unit || "kg CO₂e")}${range}</div>
       <p class="carbon__sub">${escapeHtml(c.greenest_icon || "")} greenest by ${escapeHtml(c.greenest_mode || "")} ·
         ~${escapeHtml(String(c.per_person_kg))} kg/person · ${escapeHtml(String(c.travellers))} traveller(s) · ${escapeHtml(c.route || "")}</p>
+      ${srcBadge}
       <p class="disclaimer">${escapeHtml(c.disclaimer || "")}</p>
       <button type="button" class="method-link" data-method>How we estimate</button>
       <p class="disclaimer" data-method-note hidden>We combine distance (great-circle), mode emission factors and

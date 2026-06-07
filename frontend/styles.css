@@ -366,6 +366,13 @@ body {
 .carbon__big { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
 .carbon__sub { font-size: .82rem; color: var(--muted); }
 .disclaimer { margin: 8px 0 0; font-size: .76rem; color: var(--muted); font-style: italic; }
+.src-chip {
+  display: inline-block; margin-top: 8px;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 2px 9px;
+}
+.src-chip--live { color: var(--brand-2); background: var(--green-bg); border-color: var(--green-bd); }
 .method-link { background: none; border: none; color: var(--brand-2); font-weight: 700; font-size: .78rem; cursor: pointer; padding: 4px 0 0; text-decoration: underline; }
 
 /* ---------------- Alert / notice ---------------- */
