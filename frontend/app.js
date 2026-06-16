@@ -454,23 +454,52 @@ function buildDatePicker() {
     </div>`;
 }
 
-// When the user is flexible, capture a rough trip length so the summary still
-// shows something concrete (and a future budget-aware date search has a window).
-function buildFlexLengths() {
+// Flexible flow: pick a month, then a length; we then propose a concrete random
+// date range inside that month so the trip has real dates to plan around.
+let flexMonth = null;   // { y, m } chosen month
+
+function buildFlexMonths() {
+  const now = new Date();
+  let chips = "";
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const label = d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+    chips += `<button type="button" class="chip" data-flex-month="${d.getFullYear()}-${d.getMonth()}">${escapeHtml(label)}</button>`;
+  }
+  return `<p class="dock__hint">Which month would you like to travel?</p><div class="choices">${chips}</div>`;
+}
+
+function buildFlexNights() {
   const opts = [
-    { label: "Weekend (2–3 days)", value: "Flexible · weekend (2–3 days)" },
-    { label: "Short (4–7 days)",   value: "Flexible · 4–7 days" },
-    { label: "Long (8+ days)",     value: "Flexible · 8+ days" },
+    { label: "Weekend (3 nights)", n: 3 },
+    { label: "Short break (5 nights)", n: 5 },
+    { label: "A week (7 nights)", n: 7 },
+    { label: "Long (10 nights)", n: 10 },
   ];
   const chips = opts.map((o) =>
-    `<button type="button" class="chip" data-rasa-payload="${escapeHtml(`/inform{"travel_date": "${o.value}"}`)}" ` +
-    `data-user-label="${escapeHtml(o.label)}">${escapeHtml(o.label)}</button>`).join("");
-  return `<p class="dock__hint">Tap a length, or type how many days (e.g. “5”).</p><div class="choices">${chips}</div>`;
+    `<button type="button" class="chip" data-flex-nights="${o.n}">${escapeHtml(o.label)}</button>`).join("");
+  return `<p class="dock__hint">Roughly how long?</p><div class="choices">${chips}</div>`;
 }
 
 function fmtDate(iso) {
   const d = new Date(iso + "T00:00:00");
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+function fmtDateObj(d) {
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// A concrete random date range of `nights` inside the chosen month (no past days).
+function randomFlexRange(y, m, nights) {
+  const today = new Date();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  let minStart = 1;
+  if (y === today.getFullYear() && m === today.getMonth()) minStart = today.getDate() + 1;
+  const maxStart = Math.max(minStart, daysInMonth - 1);
+  const startDay = minStart + Math.floor(Math.random() * (maxStart - minStart + 1));
+  const start = new Date(y, m, startDay);
+  const end = new Date(start.getTime() + nights * 86400000);
+  return `${fmtDateObj(start)} – ${fmtDateObj(end)} · ${nights} night${nights === 1 ? "" : "s"}`;
 }
 
 function renderRasaResponses(responses) {
@@ -501,8 +530,10 @@ function renderRasaResponses(responses) {
   if (isDate) { setDock(buildDatePicker()); return; }
 
   if (buttons.length) {
-    const chips = buttons.map((b) =>
-      `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(b.title)}</button>`).join("");
+    const chips = buttons.map((b) => {
+      const title = b.title === "Just me" ? "1" : b.title;   // show "1" for the solo traveller option
+      return `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(title)}</button>`;
+    }).join("");
     setDock(`<p class="dock__hint">Tap an option, or type your answer below.</p><div class="choices">${chips}</div>`);
   } else {
     setDockHint("Type your reply below, or use the controls above.");
@@ -574,10 +605,27 @@ dockEl.addEventListener("click", (ev) => {
   const retry = ev.target.closest("[data-retry]");
   if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
   const flex = ev.target.closest("[data-flex-length]");
-  if (flex) {                                          // flexible -> ask trip length (no re-ask of dates)
+  if (flex) {                                          // flexible -> pick a month
     addUser("I'm flexible");
-    addBot("Sure — roughly how long is the trip?");
-    setDock(buildFlexLengths());
+    addBot("No problem — which month suits you?");
+    setDock(buildFlexMonths());
+    return;
+  }
+  const fm = ev.target.closest("[data-flex-month]");
+  if (fm) {                                            // month chosen -> ask length
+    const [y, m] = fm.dataset.flexMonth.split("-").map(Number);
+    flexMonth = { y, m };
+    addUser(fm.textContent.trim());
+    addBot("And roughly how long?");
+    setDock(buildFlexNights());
+    return;
+  }
+  const fn = ev.target.closest("[data-flex-nights]");
+  if (fn && flexMonth) {                               // length chosen -> propose concrete random dates
+    const nights = Number(fn.dataset.flexNights);
+    const label = randomFlexRange(flexMonth.y, flexMonth.m, nights);
+    flexMonth = null;
+    sendToRasa(`/inform{"travel_date": "${label}"}`, label);
     return;
   }
   const geoBtn = ev.target.closest("[data-geo-locate]");
