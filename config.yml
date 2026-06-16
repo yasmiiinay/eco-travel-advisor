@@ -61,7 +61,7 @@ policies:
   # output and single-turn behaviours (greet, out-of-scope, handover).
   - name: RulePolicy
     core_fallback_threshold: 0.4
-    core_fallback_action_name: action_default_fallback
+    core_fallback_action_name: action_scoped_fallback   # context-aware fallback + human escalation
     enable_fallback_prediction: true
 
   # Generalises to unseen multi-turn paths (e.g. the user edits a slot or

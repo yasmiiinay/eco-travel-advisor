@@ -101,11 +101,21 @@ PREF_LABELS = {
 }
 PREF_SYNONYMS = {
     "lowest_carbon": "low_carbon", "low_carbon": "low_carbon", "greenest": "low_carbon",
-    "eco_certified": "eco_certified", "certified": "eco_certified",
+    "green": "low_carbon", "low_emission": "low_carbon", "carbon": "low_carbon",
+    "eco_certified": "eco_certified", "certified": "eco_certified", "eco": "eco_certified",
+    "eco_friendly": "eco_certified", "sustainable": "eco_certified",
     "local_community": "local_culture", "local": "local_culture",
-    "community": "local_culture", "local_culture": "local_culture",
-    "balanced": "balanced",
+    "community": "local_culture", "local_culture": "local_culture", "culture": "local_culture",
+    "balanced": "balanced", "balance": "balanced", "mix": "balanced",
 }
+
+# Loose substring fallbacks for free-text preferences ("go green", "eco stays", ...).
+PREF_SUBSTRINGS = (
+    ("eco", "eco_certified"), ("certified", "eco_certified"), ("sustain", "eco_certified"),
+    ("green", "low_carbon"), ("carbon", "low_carbon"), ("emission", "low_carbon"),
+    ("local", "local_culture"), ("communit", "local_culture"), ("cultur", "local_culture"),
+    ("balance", "balanced"), ("mix", "balanced"),
+)
 
 UNINFORMATIVE = {"not sure", "maybe", "i don't know", "i dont know", "idk",
                  "dunno", "whatever", "no idea", "don't know"}
@@ -364,10 +374,15 @@ class ValidateTripPlanningForm(FormValidationAction):
         if _is_uninformative(slot_value):
             dispatcher.utter_message(response="utter_ask_sustainability_pref")
             return {"sustainability_pref": None}
-        normalised = str(slot_value).strip().lower().replace(" ", "_").replace("-", "_")
-        key = PREF_SYNONYMS.get(normalised)
+        raw = str(slot_value).strip().lower()
+        # 1) Exact synonym (button payloads + common words, incl. "eco"/"green").
+        key = PREF_SYNONYMS.get(raw.replace(" ", "_").replace("-", "_"))
         if key:
             return {"sustainability_pref": key}
+        # 2) Loose substring match for free text ("go green", "eco stays", ...).
+        for token, val in PREF_SUBSTRINGS:
+            if token in raw:
+                return {"sustainability_pref": val}
         dispatcher.utter_message(response="utter_ask_sustainability_pref")
         return {"sustainability_pref": None}
 
@@ -799,33 +814,75 @@ class ActionHandover(Action):
 
 
 # ===========================================================================
-# 10. Scoped fallback (DC-08)
-# A low-confidence message that *looks like a place name* (e.g. "adana") gets a
-# clear, in-scope reply naming the supported cities, instead of the generic
-# "I didn't catch that". Anything else keeps the normal rephrase prompt.
+# 10. Context-aware fallback + human escalation
+# A low-confidence message gets a recovery that fits the moment:
+#   * inside the form   -> apologise and re-show the CURRENT slot's options
+#                          (not the generic "type a city" message);
+#   * a place-like word -> name the supported cities;
+#   * otherwise         -> a gentle rephrase prompt.
+# After repeated trouble (3 consecutive fallbacks) it offers a human advisor —
+# the brief's two-stage clarification -> escalation flow. Used both by the
+# nlu_fallback rule and as the RulePolicy core fallback (config.yml).
 # ===========================================================================
+
+_SLOT_PROMPT = {
+    "origin": "utter_ask_origin",
+    "destination": "utter_ask_destination",
+    "travel_date": "utter_ask_travel_date",
+    "num_travellers": "utter_ask_num_travellers",
+    "budget": "utter_ask_budget",
+    "sustainability_pref": "utter_ask_sustainability_pref",
+}
+_HUMAN_BTN = {"title": "🧑‍💼 Talk to a human", "payload": "/request_human"}
+
+
+def _consecutive_fallbacks(tracker) -> int:
+    """How many fallback actions have run in a row (including this turn)."""
+    n = 0
+    for ev in reversed(tracker.events or []):
+        if ev.get("event") != "action":
+            continue
+        name = ev.get("name")
+        if name in ("action_scoped_fallback", "action_default_fallback"):
+            n += 1
+        elif name != "action_listen":
+            break
+    return n + 1
+
 
 class ActionScopedFallback(Action):
     def name(self) -> Text:
         return "action_scoped_fallback"
 
     def run(self, dispatcher, tracker, domain) -> List[EventType]:
+        streak = _consecutive_fallbacks(tracker)
+        active = (tracker.active_loop or {}).get("name")
+        requested = tracker.get_slot("requested_slot")
         text = (tracker.latest_message.get("text") or "").strip()
-        words = text.split()
-        # Heuristic: one or two alphabetic words, 3+ chars -> probably a city the
-        # user is asking for, just not one we support.
-        looks_like_place = (
-            1 <= len(words) <= 2
-            and text.replace(" ", "").isalpha()
-            and len(text) >= 3
-        )
 
+        # --- Inside the trip form: re-show the CURRENT step's own options ---
+        if active == FORM_NAME and requested in _SLOT_PROMPT:
+            if streak >= 3:
+                dispatcher.utter_message(
+                    text="I'm still having trouble understanding. You can keep choosing below, "
+                         "or talk to a human advisor.",
+                    buttons=[_HUMAN_BTN],
+                )
+            else:
+                dispatcher.utter_message(text="Sorry, I didn't quite catch that — here are the options:")
+            dispatcher.utter_message(response=_SLOT_PROMPT[requested])
+            return []
+
+        # --- Outside the form: place-name aware, then escalation ---
+        words = text.split()
+        looks_like_place = (1 <= len(words) <= 2 and text.replace(" ", "").isalpha() and len(text) >= 3)
         if looks_like_place:
+            dispatcher.utter_message(text=f"I don't cover \"{text}\" yet. {SUPPORTED_LINE}", buttons=DEST_BUTTONS)
+        elif streak >= 3:
             dispatcher.utter_message(
-                text=f"I don't cover \"{text}\" yet. {SUPPORTED_LINE}",
-                buttons=DEST_BUTTONS,
+                text="I'm having trouble understanding. Would you like to talk to a human advisor?",
+                buttons=[_HUMAN_BTN, {"title": "Plan a trip", "payload": "/plan_trip"}],
             )
         else:
-            # Generic low-confidence recovery (same content as utter_ask_rephrase).
             dispatcher.utter_message(response="utter_ask_rephrase")
         return []

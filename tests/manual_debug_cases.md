@@ -111,6 +111,9 @@ Run in the connected UI after `rasa train` + restarting both servers.
 | S-04 | Date step → tap **I'm flexible** | Summary shows **Flexible dates** (not "flexible" or a raw value). |
 | S-05 | Date step → pick start + end | Summary shows `02 Jul 2026 – 15 Jul 2026 · 13 nights`. |
 | S-16 | Origin `roma` (Rome), then destination `londra` (London) — two different cities | Accepted as **Rome → London**; NO false "destination can't be the same as origin". Root cause was `from_entity` filling a slot regardless of the requested step; fixed by adding a `requested_slot` condition to every form slot's `from_entity` mapping (so a stray entity at the wrong step can no longer overwrite another slot). |
+| S-17 | At the **preference** step, type `eco` / `green` / `sustainable` | Understood (eco→Eco-certified, green→Lowest carbon, sustainable→Eco-certified) — no fallback. |
+| S-18 | At any step, type something unrecognisable | Context-aware fallback: apologises and **re-shows that step's own buttons** (not the generic "type a city"). |
+| S-19 | Give 3 unrecognisable answers in a row | After the 3rd, the bot offers **"🧑‍💼 Talk to a human"** (two-stage clarification → human escalation). Tapping it hands over with full context. |
 | S-06 | Complete a trip with **Lowest carbon**, greenest = train/coach | **No** global "high-emission" banner. The flight row in the transport card shows a red pill + inline "≈ N× the train" note. |
 | S-07 | Inspect a full results batch | Carbon disclaimer appears **once** (on the carbon card), not after every message. |
 | S-08 | Chatbot mode (no handover yet) | **Return to assistant** button is hidden. It only appears after tapping Talk to a human. |

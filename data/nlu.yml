@@ -403,6 +403,13 @@ nlu:
     - my budget is [mid](budget)
     - keep the cost [low budget]{"entity": "budget", "value": "budget"}
     - I'd like a [moderate]{"entity": "budget", "value": "mid"} spend
+    - [eco]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - [eco-friendly]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - [eco friendly]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - [sustainable]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - keep it [eco]{"entity": "sustainability_pref", "value": "eco_certified"}
+    - [green]{"entity": "sustainability_pref", "value": "low_carbon"}
+    - go [green]{"entity": "sustainability_pref", "value": "low_carbon"}
     - I care most about the [lowest carbon]{"entity": "sustainability_pref", "value": "low_carbon"}
     - I want the [greenest]{"entity": "sustainability_pref", "value": "low_carbon"} option
     - prefer [eco-certified]{"entity": "sustainability_pref", "value": "eco_certified"} hotels
