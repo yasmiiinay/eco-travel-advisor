@@ -44,6 +44,7 @@ const dockEl = document.getElementById("dock");
 const textInputEl = document.getElementById("text-input");
 const sendBtnEl = document.querySelector(".composer__send");
 const summaryListEl = document.getElementById("summary-list");
+const historyListEl = document.getElementById("history-list");
 const summaryCountEl = document.getElementById("summary-count");
 const summaryFillEl = document.getElementById("summary-progress-fill");
 const summaryBarEl = document.getElementById("summary-bar");
@@ -220,6 +221,64 @@ function renderSummary() {
 }
 
 /* --------------------------------------------------------------------------
+   4b. Trip history (left rail) — snapshots each completed plan; click to re-plan
+   -------------------------------------------------------------------------- */
+let tripHistory = [];
+try { tripHistory = JSON.parse(localStorage.getItem("ecoTripHistory") || "[]"); } catch (_) { tripHistory = []; }
+
+function saveHistory() {
+  try { localStorage.setItem("ecoTripHistory", JSON.stringify(tripHistory.slice(0, 20))); } catch (_) { /* file:// may block */ }
+}
+
+function addTripToHistory(co2) {
+  if (!rasaTrip.origin || !rasaTrip.destination) return;
+  const t = {
+    origin: rasaTrip.origin, destination: rasaTrip.destination,
+    travel_date: rasaTrip.travel_date, num_travellers: rasaTrip.num_travellers,
+    budget: rasaTrip.budget, sustainability_pref: rasaTrip.sustainability_pref,
+    co2: (co2 != null ? co2 : null), ts: Date.now(),
+  };
+  const same = tripHistory.find((x) =>
+    x.origin === t.origin && x.destination === t.destination && x.travel_date === t.travel_date);
+  if (same) Object.assign(same, t); else tripHistory.unshift(t);
+  tripHistory = tripHistory.slice(0, 20);
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  if (!historyListEl) return;
+  if (!tripHistory.length) {
+    historyListEl.innerHTML = `<li class="history__empty">Plans you complete will appear here.</li>`;
+    return;
+  }
+  historyListEl.innerHTML = tripHistory.map((t, i) => {
+    const route = `${flagFor(t.origin)} ${escapeHtml(t.origin)} → ${flagFor(t.destination)} ${escapeHtml(t.destination)}`;
+    const dates = t.travel_date ? escapeHtml(String(rasaPretty("travel_date", t.travel_date))) : "Dates not set";
+    const co2 = t.co2 != null ? `≈ ${escapeHtml(String(t.co2))} kg CO₂e` : "";
+    return `<li><button type="button" class="history__item" data-trip="${i}" title="Re-plan this trip">
+      <span class="history__route">${route}</span>
+      <span class="history__meta">${dates} · ${escapeHtml(String(t.num_travellers || "?"))} traveller(s)</span>
+      <span class="history__co2">${co2}</span>
+    </button></li>`;
+  }).join("");
+}
+
+// Re-plan a saved trip: reset, then replay its slot values in order.
+async function replayTrip(t) {
+  chatEl.innerHTML = "";
+  RASA_FIELDS.forEach((f) => delete rasaTrip[f]);
+  renderSummary();
+  await sendToRasa("/reset_trip", false);
+  const order = [["origin", t.origin], ["destination", t.destination], ["travel_date", t.travel_date],
+                 ["num_travellers", t.num_travellers], ["budget", t.budget], ["sustainability_pref", t.sustainability_pref]];
+  for (const [slot, val] of order) {
+    if (val == null || val === "") continue;
+    await sendToRasa(`/inform{"${slot}": "${String(val).replace(/"/g, '\\"')}"}`, false);
+  }
+}
+
+/* --------------------------------------------------------------------------
    5. Custom payload renderers (the rich cards)
    -------------------------------------------------------------------------- */
 function renderCustom(c) {
@@ -267,6 +326,8 @@ function renderCarbon(c) {
         average occupancy. Figures are indicative for a prototype and use curated factors; verify against an
         official source (e.g. DEFRA/ICAO) before relying on them.</p>
     </div>`);
+  // A completed estimate marks a completed plan -> snapshot it into trip history.
+  addTripToHistory(c.total_kg);
 }
 
 function renderTransport(c) {
@@ -735,12 +796,22 @@ function setDrawer(open) {
 summaryBarEl.addEventListener("click", () => setDrawer(appEl.dataset.summaryOpen !== "true"));
 scrimEl.addEventListener("click", () => setDrawer(false));
 
+// Trip history rail: click an entry to re-plan that trip.
+const historyEl = document.getElementById("history");
+if (historyEl) historyEl.addEventListener("click", (ev) => {
+  const item = ev.target.closest("[data-trip]");
+  if (!item || advisorMode) return;
+  const t = tripHistory[Number(item.dataset.trip)];
+  if (t) replayTrip(t);
+});
+
 /* --------------------------------------------------------------------------
    9. Boot
    -------------------------------------------------------------------------- */
 function boot() {
   RASA_FIELDS.forEach((f) => delete rasaTrip[f]);
   renderSummary();
+  renderHistory();
   sendToRasa("/greet", false);   // silent trigger, no user bubble
 }
 boot();

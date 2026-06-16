@@ -33,7 +33,7 @@
   --shadow-sm: 0 1px 3px rgba(16, 36, 28, .08);
   --shadow: 0 6px 20px rgba(16, 36, 28, .10);
   --shadow-lg: 0 14px 40px rgba(16, 36, 28, .16);
-  --maxw: 1040px;
+  --maxw: 1260px;
 }
 
 * { box-sizing: border-box; }
@@ -132,10 +132,34 @@ body {
 .layout {
   flex: 1; min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 240px 1fr 320px;
   gap: 0;
   position: relative;
 }
+
+/* ---------- Trip history (left rail) ---------- */
+.history {
+  border-right: 1px solid var(--line);
+  background: var(--surface-2);
+  padding: 16px 12px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.history__title { margin: 0; font-size: .82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.history__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.history__empty { color: var(--muted); font-style: italic; font-size: .82rem; }
+.history__item {
+  text-align: left; width: 100%; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 9px 11px;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .15s ease, transform .08s ease;
+}
+.history__item:hover { border-color: var(--brand); }
+.history__item:active { transform: translateY(1px); }
+.history__route { font-weight: 700; font-size: .86rem; }
+.history__meta { font-size: .74rem; color: var(--muted); }
+.history__co2 { font-size: .72rem; font-weight: 700; }
 
 /* Conversation column */
 .conv {
@@ -436,9 +460,16 @@ body {
 /* ==========================================================================
    Responsive — mobile first collapses the side panel into a drawer
    ========================================================================== */
+@media (max-width: 1040px) {
+  /* drop the history rail first on medium screens */
+  .layout { grid-template-columns: 1fr 320px; }
+  .history { display: none; }
+}
+
 @media (max-width: 860px) {
   .app { box-shadow: none; }
   .layout { grid-template-columns: 1fr; }
+  .history { display: none; }
   .summary-bar { display: flex; }
 
   /* summary becomes a slide-down drawer */
