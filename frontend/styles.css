@@ -367,13 +367,23 @@ body {
 .carbon__big { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
 .carbon__sub { font-size: .82rem; color: var(--muted); }
 .disclaimer { margin: 8px 0 0; font-size: .76rem; color: var(--muted); font-style: italic; }
-.src-chip {
-  display: inline-block; margin-top: 8px;
-  font-size: .72rem; font-weight: 700; color: var(--muted);
-  background: var(--surface-2); border: 1px solid var(--line);
-  border-radius: 999px; padding: 2px 9px;
+/* Data-source provenance: a compact icon with a hover/focus tooltip */
+.card__head-right { display: inline-flex; align-items: center; gap: 8px; }
+.src-icon {
+  position: relative; cursor: help; font-size: 1rem; line-height: 1;
+  opacity: .55; filter: grayscale(0.4); transition: opacity .15s ease;
 }
-.src-chip--live { color: var(--brand-2); background: var(--green-bg); border-color: var(--green-bd); }
+.src-icon:hover, .src-icon:focus-visible { opacity: 1; filter: none; outline: none; }
+.src-icon--live { opacity: .9; filter: none; }
+.src-icon[data-tip]:hover::after,
+.src-icon[data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute; right: 0; top: 145%;
+  background: var(--ink); color: #fff;
+  font-size: .72rem; font-weight: 600; letter-spacing: .01em;
+  padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  box-shadow: var(--shadow); z-index: 20;
+}
 .method-link { background: none; border: none; color: var(--brand-2); font-weight: 700; font-size: .78rem; cursor: pointer; padding: 4px 0 0; text-decoration: underline; }
 
 /* ---------------- Alert / notice ---------------- */
