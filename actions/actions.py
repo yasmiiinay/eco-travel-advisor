@@ -338,8 +338,17 @@ class ValidateTripPlanningForm(FormValidationAction):
         # "12 June" is NOT bare digits, so it is left untouched.
         low = text.lower()
         compact = text.replace(" ", "")
+        # A real date or range (month name, 4-digit year, or a range dash / "to")
+        # is kept verbatim — never re-interpreted as a trip length. This is what
+        # the date picker sends, e.g. "19 Jun 2026 – 23 Jun 2026 · 4 nights".
+        _MONTHS = ("jan", "feb", "mar", "apr", "may", "jun",
+                   "jul", "aug", "sep", "oct", "nov", "dec")
+        looks_like_date = (
+            any(m in low for m in _MONTHS) or "–" in text or "-" in text
+            or " to " in low or any(t.isdigit() and len(t) == 4 for t in low.split())
+        )
         has_duration_word = any(w in low for w in ("day", "night", "week"))
-        if compact.isdigit() or has_duration_word:
+        if not looks_like_date and (compact.isdigit() or has_duration_word):
             n = _parse_budget_amount(text)          # reuse: extracts the first integer
             if n and "week" in low:
                 n *= 7
