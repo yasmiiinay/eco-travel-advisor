@@ -263,7 +263,7 @@ function renderCarbon(c) {
       <p class="disclaimer">${escapeHtml(c.disclaimer || "")}</p>
       <button type="button" class="method-link" data-method>How we estimate</button>
       <p class="disclaimer" data-method-note hidden>We combine distance (great-circle), mode emission factors and
-        average occupancy. Figures are indicative for a prototype and use curated factors — verify against an
+        average occupancy. Figures are indicative for a prototype and use curated factors; verify against an
         official source (e.g. DEFRA/ICAO) before relying on them.</p>
     </div>`);
 }
@@ -377,15 +377,15 @@ function enterAdvisor(summary) {
   const route = summary.route || "your trip";
   const date = summary.travel_date && summary.travel_date !== "-" ? ` on ${summary.travel_date}` : "";
   const pref = summary.preference && summary.preference !== "-" ? ` and your “${summary.preference}” preference` : "";
-  setDockHint("You're talking to a person now — type your message below.");
+  setDockHint("You're talking to a person now, so type your message below.");
   setTimeout(() => addAdvisor(`Hi, I'm Maya 👋 I can see your <b>${escapeHtml(route)}</b> plan${escapeHtml(pref)}.`), 500);
   setTimeout(() => addAdvisor(`Want me to check greener rail availability${escapeHtml(date)} and tailor the eco-hotels for you?`), 1500);
 }
 
 const ADVISOR_LINES = [
-  "Good question — let me look into that against your trip details.",
+  "Good question, let me look into that against your trip details.",
   "I can definitely arrange that. I still have your full plan and the recommendations in front of me.",
-  "Based on your sustainability preference, I'd lean towards the rail option — want me to hold it?",
+  "Based on your sustainability preference, I'd lean towards the rail option. Want me to hold it?",
   "Noted. I'll factor that into your itinerary and follow up by email with the eco-certified stays.",
 ];
 let advisorTurn = 0;
@@ -607,7 +607,7 @@ dockEl.addEventListener("click", (ev) => {
   const flex = ev.target.closest("[data-flex-length]");
   if (flex) {                                          // flexible -> pick a month
     addUser("I'm flexible");
-    addBot("No problem — which month suits you?");
+    addBot("No problem, which month suits you?");
     setDock(buildFlexMonths());
     return;
   }
@@ -634,7 +634,7 @@ dockEl.addEventListener("click", (ev) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => sendToRasa(`/inform{"origin": "geo:${pos.coords.latitude},${pos.coords.longitude}"}`, "📍 My location"),
       () => { geoBtn.disabled = false; geoBtn.textContent = "📍 Use my location";
-              addBot("I couldn't access your location — please pick or type a city."); }
+              addBot("I couldn't access your location, so please pick or type a city."); }
     );
     return;
   }

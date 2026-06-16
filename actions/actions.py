@@ -36,7 +36,7 @@ FORM_NAME = "trip_planning_form"
 LEVEL_TEXT = {"green": "Low", "amber": "Medium", "red": "High"}
 LEVEL_ICON = {"green": "✓", "amber": "!", "red": "⚠"}
 MODE_ICON = {"flight": "✈️", "train": "🚆", "coach": "🚌", "car": "🚗", "ferry": "⛴️"}
-CARBON_DISCLAIMER = "Estimates only — actual emissions vary with occupancy, route and operator."
+CARBON_DISCLAIMER = "Estimates only. Actual emissions vary with occupancy, route and operator."
 
 # Human-friendly provenance label for the carbon card (which data_source produced it).
 SOURCE_LABEL = {
@@ -250,7 +250,7 @@ class ValidateTripPlanningForm(FormValidationAction):
 
     def validate_origin(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
-            dispatcher.utter_message(text="No problem - which city are you starting from?")
+            dispatcher.utter_message(text="No problem, which city are you starting from?")
             return {"origin": None}
         if not slot_value or not str(slot_value).strip():
             return {"origin": None}
@@ -260,7 +260,7 @@ class ValidateTripPlanningForm(FormValidationAction):
             try:
                 lat, lon = (float(x) for x in raw[4:].split(",")[:2])
             except Exception:
-                dispatcher.utter_message(text="I couldn't read your location — please pick a city.",
+                dispatcher.utter_message(text="I couldn't read your location, so please pick a city.",
                                          buttons=DEST_BUTTONS)
                 return {"origin": None}
             city, name, dist = geo.resolve_location(lat, lon)
@@ -268,7 +268,7 @@ class ValidateTripPlanningForm(FormValidationAction):
                 where = f" (near {name})" if name else ""
                 dispatcher.utter_message(text=f"📍 Using your nearest supported city, {city}{where}, as your origin.")
                 return {"origin": city}
-            dispatcher.utter_message(text="I couldn't match your location to a supported city — please pick one.",
+            dispatcher.utter_message(text="I couldn't match your location to a supported city, so please pick one.",
                                      buttons=DEST_BUTTONS)
             return {"origin": None}
         # Fuzzy-resolve so typos normalise to a canonical city ("madridd" -> Madrid).
@@ -318,7 +318,7 @@ class ValidateTripPlanningForm(FormValidationAction):
 
     def validate_travel_date(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
-            dispatcher.utter_message(text="No worries - you can give rough dates or just say \"flexible\".")
+            dispatcher.utter_message(text="No worries, you can give rough dates or just say \"flexible\".")
             return {"travel_date": None}
         if not slot_value or not str(slot_value).strip():
             return {"travel_date": None}
@@ -392,7 +392,7 @@ class ValidateTripPlanningForm(FormValidationAction):
             tier = _budget_tier_from_amount(amount)
             tier_name = BUDGET_LABELS[tier].split(" (")[0]
             dispatcher.utter_message(
-                text=f"Got it — about €{amount}/day, so I'll use the {tier_name} tier."
+                text=f"Got it, that's about €{amount}/day, so I'll use the {tier_name} tier."
             )
             return {"budget": tier, "budget_amount": f"€{amount}/day"}
         dispatcher.utter_message(response="utter_ask_budget")
@@ -432,12 +432,12 @@ class ActionClarifyDestination(Action):
             return []
 
         if intent == "affirm":
-            dispatcher.utter_message(text=f"Great - setting your destination to {guess}.")
+            dispatcher.utter_message(text=f"Great, setting your destination to {guess}.")
             return [SlotSet("destination", guess), SlotSet("destination_guess", None),
                     FollowupAction(FORM_NAME)]
 
         if intent == "deny":
-            dispatcher.utter_message(text="No problem - which destination would you like?")
+            dispatcher.utter_message(text="No problem, which destination would you like?")
             return [SlotSet("destination", None), SlotSet("destination_guess", None),
                     FollowupAction(FORM_NAME)]
 
@@ -730,7 +730,7 @@ class ActionGoBack(Action):
         }
         for slot in order:
             if tracker.get_slot(slot):
-                dispatcher.utter_message(text=f"Sure - let's revisit your {labels[slot]}.")
+                dispatcher.utter_message(text=f"Sure, let's revisit your {labels[slot]}.")
                 return [SlotSet(slot, None), FollowupAction(FORM_NAME)]
 
         dispatcher.utter_message(text="We're already at the first question.")
@@ -760,7 +760,7 @@ class ActionEditAnswer(Action):
                 field = ent["value"]
                 break
         if field:
-            dispatcher.utter_message(text=f"Okay - let's update your {labels[field]}.")
+            dispatcher.utter_message(text=f"Okay, let's update your {labels[field]}.")
             return [SlotSet(field, None), FollowupAction(FORM_NAME)]
 
         dispatcher.utter_message(
@@ -915,7 +915,7 @@ class ActionScopedFallback(Action):
                     buttons=[_HUMAN_BTN],
                 )
             else:
-                dispatcher.utter_message(text="Sorry, I didn't quite catch that — here are the options:")
+                dispatcher.utter_message(text="Sorry, I didn't quite catch that. Here are the options:")
             dispatcher.utter_message(response=_SLOT_PROMPT[requested])
             return []
 

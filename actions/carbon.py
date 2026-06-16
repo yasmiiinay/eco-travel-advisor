@@ -81,11 +81,11 @@ _ESTIMATE_CACHE: dict = {}
 # Source-aware disclaimer wording (requirement: make provenance explicit).
 DISCLAIMER_CLIMATIQ = (
     "Carbon values are calculated using Climatiq API emission factors. Indicative "
-    "only — verify against an official source (e.g. DEFRA/ICAO) before relying on them."
+    "only; please verify against an official source (e.g. DEFRA/ICAO) before relying on them."
 )
 DISCLAIMER_STORED = (
     "Carbon values are estimated using stored prototype emission factors. Indicative "
-    "only — verify against an official source (e.g. DEFRA/ICAO) before relying on them."
+    "only; please verify against an official source (e.g. DEFRA/ICAO) before relying on them."
 )
 # Generic default (kept for backward compatibility / the 'unavailable' case).
 DISCLAIMER = DISCLAIMER_STORED

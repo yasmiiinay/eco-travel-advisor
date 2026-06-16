@@ -197,7 +197,7 @@ responses:
           payload: "/plan_trip"
 
   utter_ask_origin:
-    - text: "Where are you travelling from? Tap a city or type one - I support 12 popular European cities (Paris, Berlin, Amsterdam, Copenhagen, London, Madrid, Rome, Barcelona, Vienna, Munich, Lisbon, Prague)."
+    - text: "Where are you travelling from? Tap a city or type one. I support 12 popular European cities (Paris, Berlin, Amsterdam, Copenhagen, London, Madrid, Rome, Barcelona, Vienna, Munich, Lisbon, Prague)."
       buttons:
         - title: "London"
           payload: '/inform{"origin": "London"}'
@@ -257,7 +257,7 @@ responses:
           payload: '/inform{"budget": "comfort"}'
 
   utter_ask_sustainability_pref:
-    - text: "Last question - what matters most for this trip? This shapes how I rank your options."
+    - text: "Last question: what matters most for this trip? This shapes how I rank your options."
       buttons:
         - title: "Lowest carbon"
           payload: '/inform{"sustainability_pref": "low_carbon"}'
@@ -272,13 +272,13 @@ responses:
     - text: "Note: carbon values are estimates based on average emission factors and curated prototype data. Verify against an official source (e.g. DEFRA/ICAO) before relying on them."
 
   utter_out_of_scope:
-    - text: "I can only help with planning a sustainable trip - destinations, transport, eco-hotels and your carbon footprint. Shall we carry on with that?"
+    - text: "I can only help with planning a sustainable trip: destinations, transport, eco-hotels and your carbon footprint. Shall we carry on with that?"
       buttons:
         - title: "Continue planning"
           payload: "/plan_trip"
 
   utter_ask_rephrase:
-    - text: "Sorry, I didn't quite catch that. I can help you plan a sustainable trip - start below, or talk to a human advisor."
+    - text: "Sorry, I didn't quite catch that. I can help you plan a sustainable trip. Start below, or talk to a human advisor."
       buttons:
         - title: "Plan a trip"
           payload: "/plan_trip"
@@ -286,7 +286,7 @@ responses:
           payload: "/request_human"
 
   utter_trip_reset:
-    - text: "No problem - I've cleared your trip. Let's start fresh."
+    - text: "No problem, I've cleared your trip. Let's start fresh."
       buttons:
         - title: "Plan a trip"
           payload: "/plan_trip"
@@ -298,7 +298,7 @@ responses:
     - text: "Safe and sustainable travels! Come back any time to plan your next trip."
 
   utter_default:
-    - text: "I'm not sure I understood. I can help you plan a sustainable trip between 12 popular European cities - choose an option or type a city."
+    - text: "I'm not sure I understood. I can help you plan a sustainable trip between 12 popular European cities. Choose an option or type a city."
       buttons:
         - title: "Plan a trip"
           payload: "/plan_trip"
