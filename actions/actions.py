@@ -23,7 +23,9 @@ from rasa_sdk.types import DomainDict
 
 import aviation
 import carbon
+import geo
 import repository
+import routing
 
 # ---------------------------------------------------------------------------
 # Shared labels and helpers
@@ -252,6 +254,23 @@ class ValidateTripPlanningForm(FormValidationAction):
             return {"origin": None}
         if not slot_value or not str(slot_value).strip():
             return {"origin": None}
+        raw = str(slot_value).strip()
+        # GPS path: the UI sends "geo:LAT,LON" from the browser's location.
+        if raw.lower().startswith("geo:"):
+            try:
+                lat, lon = (float(x) for x in raw[4:].split(",")[:2])
+            except Exception:
+                dispatcher.utter_message(text="I couldn't read your location — please pick a city.",
+                                         buttons=DEST_BUTTONS)
+                return {"origin": None}
+            city, name, dist = geo.resolve_location(lat, lon)
+            if city:
+                where = f" (near {name})" if name else ""
+                dispatcher.utter_message(text=f"📍 Using your nearest supported city, {city}{where}, as your origin.")
+                return {"origin": city}
+            dispatcher.utter_message(text="I couldn't match your location to a supported city — please pick one.",
+                                     buttons=DEST_BUTTONS)
+            return {"origin": None}
         # Fuzzy-resolve so typos normalise to a canonical city ("madridd" -> Madrid).
         match = repository.resolve_origin(str(slot_value))
         if match:
@@ -451,11 +470,27 @@ class ActionEstimateCarbon(Action):
 
         greenest = options[0]
         per_person = greenest["estimated_emissions_kg_per_person"]
-        estimate = carbon.estimate_emissions(greenest["mode"], greenest["estimated_distance_km"], travellers)
+
+        # Distance: prefer a real road-routed distance (OpenRouteService) for ground
+        # modes, which is more realistic than the great-circle distance; fall back to
+        # the stored haversine distance. Flights keep the great-circle distance.
+        distance_km = greenest["estimated_distance_km"]
+        routed = False
+        if greenest["mode"] in ("train", "coach", "car"):
+            o_c, d_c = geo.city_coords(origin), geo.city_coords(dest["city"])
+            if o_c and d_c:
+                rk = routing.routed_distance_km(o_c[0], o_c[1], d_c[0], d_c[1])
+                if rk:
+                    distance_km, routed = rk, True
+
+        estimate = carbon.estimate_emissions(greenest["mode"], distance_km, travellers)
 
         total = estimate["estimated_co2_kg"]
         if total is None:
             total = round(per_person * travellers, 1)
+        elif routed:
+            # Keep the per-person figure consistent with the routed total.
+            per_person = round(total / travellers, 1)
         level = estimate["carbon_level"] or greenest["carbon_level"]
         source = estimate["data_source"]
 
@@ -477,6 +512,8 @@ class ActionEstimateCarbon(Action):
             "status": _status(greenest["carbon_level"]),
             "source": source,
             "source_label": SOURCE_LABEL.get(source, source),
+            "distance_km": round(distance_km),
+            "distance_note": "road-routed (OpenRouteService)" if routed else "great-circle",
             "disclaimer": estimate["disclaimer"],
             "fallback_text": fallback,
         })

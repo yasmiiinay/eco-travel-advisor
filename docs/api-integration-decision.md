@@ -88,7 +88,8 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Complexity:** Medium — could replace the haversine great-circle distance with road/rail-ish distances for more realistic emissions.
 - **Reliability risk:** Medium (rate limits; 6,000 km cap per route — fine for European cities).
 - **Fallback:** The existing **haversine engine** in `repository.py` (already the default).
-- **Decision:** **Nice to have** — a credible upgrade to distance realism, with a clean fallback. But not essential; haversine is defensible for a prototype.
+- **Decision:** **IMPLEMENTED** (`actions/routing.py`) — the carbon estimate uses ORS road-routed
+  distance for ground modes (fed to Climatiq), with a clean fallback to the stored haversine distance.
 - **Grading:** *Design depth* — distinguishing straight-line vs routed distance is a good critical-analysis paragraph.
 
 ### Transit schedules (Transitland / Navitia / Google Directions transit)

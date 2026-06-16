@@ -257,7 +257,8 @@ function renderCarbon(c) {
       </div>
       <div class="carbon__big">≈ ${escapeHtml(String(c.total_kg))} ${escapeHtml(c.unit || "kg CO₂e")}${range}</div>
       <p class="carbon__sub">${escapeHtml(c.greenest_icon || "")} greenest by ${escapeHtml(c.greenest_mode || "")} ·
-        ~${escapeHtml(String(c.per_person_kg))} kg/person · ${escapeHtml(String(c.travellers))} traveller(s) · ${escapeHtml(c.route || "")}</p>
+        ~${escapeHtml(String(c.per_person_kg))} kg/person · ${escapeHtml(String(c.travellers))} traveller(s) · ${escapeHtml(c.route || "")}${
+        c.distance_km ? ` · ${escapeHtml(String(c.distance_km))} km (${escapeHtml(c.distance_note || "")})` : ""}</p>
       ${srcBadge}
       <p class="disclaimer">${escapeHtml(c.disclaimer || "")}</p>
       <button type="button" class="method-link" data-method>How we estimate</button>
@@ -426,8 +427,11 @@ function buildCitySelector(field) {
   const chips = list.map((c, i) => cityChip(c, field, i >= FIRST)).join("");
   const more = list.length > FIRST
     ? `<button type="button" class="chip chip--more" data-more-cities>More cities ▾</button>` : "";
+  // On the origin step, offer GPS detection (browser geolocation -> nearest city).
+  const geoChip = (field === "origin" && "geolocation" in navigator)
+    ? `<button type="button" class="chip chip--more" data-geo-locate>📍 Use my location</button>` : "";
   return `<p class="dock__hint">Tap a city${field === "destination" ? " to travel to" : ""}, or type one.</p>` +
-         `<div class="choices" data-city-grid>${chips}${more}</div>`;
+         `<div class="choices" data-city-grid>${chips}${more}${geoChip}</div>`;
 }
 
 // Date range picker (start / end / flexible). Sends travel_date as text.
@@ -574,6 +578,16 @@ dockEl.addEventListener("click", (ev) => {
     addUser("I'm flexible");
     addBot("Sure — roughly how long is the trip?");
     setDock(buildFlexLengths());
+    return;
+  }
+  const geoBtn = ev.target.closest("[data-geo-locate]");
+  if (geoBtn) {                                        // GPS -> nearest supported city
+    geoBtn.disabled = true; geoBtn.textContent = "📍 Locating…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => sendToRasa(`/inform{"origin": "geo:${pos.coords.latitude},${pos.coords.longitude}"}`, "📍 My location"),
+      () => { geoBtn.disabled = false; geoBtn.textContent = "📍 Use my location";
+              addBot("I couldn't access your location — please pick or type a city."); }
+    );
     return;
   }
   const more = ev.target.closest("[data-more-cities]");

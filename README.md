@@ -51,3 +51,20 @@ retained (see `docs/api-integration-decision.md`).
   (e.g. *lowest carbon* weights carbon 0.8 / price 0.2; *balanced* weights 0.5 / 0.5).
 
 **Smoke test:** `python actions/aviation.py` — prints `None` (correct fallback) when no key is set.
+
+## Location & routing (OpenCage GPS + OpenRouteService)
+
+Two further optional APIs cover the brief's location/routing requirement, both with fallbacks:
+
+- **GPS / OpenCage (`actions/geo.py`).** The origin step offers **"📍 Use my location"**: the browser
+  shares coordinates, and the backend maps them to the **nearest supported city** (great-circle over
+  the seed data — always works, no key needed) and uses OpenCage (`OPENCAGE_API_KEY`) only to add a
+  friendly "near Frankfurt" label. The coordinates are sent as `geo:LAT,LON` and resolved in
+  `validate_origin`.
+- **OpenRouteService (`actions/routing.py`).** For ground transport the carbon estimate uses a real
+  **road-routed distance** (`OPENROUTESERVICE_API_KEY`) instead of the great-circle distance, then feeds
+  it to Climatiq; the carbon card shows `… km (road-routed (OpenRouteService))`. Flights keep the
+  great-circle distance. Any failure falls back to the stored haversine distance.
+
+Both keys are optional (env-only, never printed). Smoke tests: `python actions/geo.py`,
+`python actions/routing.py` (print the nearest-city / `None` fallback without keys).

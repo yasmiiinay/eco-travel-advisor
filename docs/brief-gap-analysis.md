@@ -28,7 +28,8 @@ UX, ethics (greenwashing, privacy, accessibility, inclusivity); identify gaps + 
 
 ### Task 2 — Functional & non-functional requirements 🟡
 - Functional: trip intake ✅, info retrieval ✅, handover ✅, error recovery ✅.
-  - **Location detection (GPS or manual)** — 🟡 manual origin selection only, no GPS/geocoding.
+  - **Location detection (GPS or manual)** — ✅ manual origin selection **and** GPS ("📍 Use my location"
+    → nearest supported city via `geo.py`, OpenCage friendly name).
 - Non-functional to address in the report: usability ✅ (tooltips/“How we estimate”), reliability ✅
   (fallback cascade), **latency < 3s** 🟡 (Climatiq adds calls — mitigated by cache + thinking indicator;
   measure & report), accessibility ✅ (aria/focus/colour+text), **GDPR/data privacy** 🟡 (we store trip +
@@ -117,8 +118,8 @@ Status vs the brief’s wording:
   by querying a **date-priced** API (e.g. Amadeus Flight Offers). Not built now because our prices are
   static per route (no date-varying pricing), and inventing a "cheapest date" without real data would
   breach the transparency/anti-greenwashing requirement. A strong design-thinking / innovation point.
-- Live transit schedules (Transitland/Navitia), routed distances (OpenRouteService), GPS geocoding
-  (OpenCage) — all evaluated in `api-integration-decision.md`, kept as future work.
+- Routed distances (OpenRouteService) and GPS geocoding (OpenCage) are now **implemented**
+  (`routing.py` / `geo.py`). Live transit schedules (Transitland/Navitia) remain future work.
 
 ## What is genuinely solid already
 Rasa NLU+Core, adaptive multi-turn form, 12-city dataset, NeonDB→JSON fallback, nine custom actions,
