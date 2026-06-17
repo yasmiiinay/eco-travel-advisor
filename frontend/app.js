@@ -238,9 +238,9 @@ function addTripToHistory(co2) {
     budget: rasaTrip.budget, sustainability_pref: rasaTrip.sustainability_pref,
     co2: (co2 != null ? co2 : null), ts: Date.now(),
   };
-  const same = tripHistory.find((x) =>
-    x.origin === t.origin && x.destination === t.destination && x.travel_date === t.travel_date);
-  if (same) Object.assign(same, t); else tripHistory.unshift(t);
+  // One entry per route: drop any existing same-route trip and add the latest on top.
+  tripHistory = tripHistory.filter((x) => !(x.origin === t.origin && x.destination === t.destination));
+  tripHistory.unshift(t);
   tripHistory = tripHistory.slice(0, 20);
   saveHistory();
   renderHistory();
@@ -264,17 +264,28 @@ function renderHistory() {
   }).join("");
 }
 
-// Re-plan a saved trip: reset, then replay its slot values in order.
+// Re-plan a saved trip: reset, start the form, then replay each slot in order so
+// every value lands on the step that is being requested. Intermediate prompts are
+// suppressed (replaying flag) so only the final plan cards appear.
+let replaying = false;
 async function replayTrip(t) {
+  if (replaying) return;
+  replaying = true;
   chatEl.innerHTML = "";
   RASA_FIELDS.forEach((f) => delete rasaTrip[f]);
   renderSummary();
-  await sendToRasa("/reset_trip", false);
-  const order = [["origin", t.origin], ["destination", t.destination], ["travel_date", t.travel_date],
-                 ["num_travellers", t.num_travellers], ["budget", t.budget], ["sustainability_pref", t.sustainability_pref]];
-  for (const [slot, val] of order) {
-    if (val == null || val === "") continue;
-    await sendToRasa(`/inform{"${slot}": "${String(val).replace(/"/g, '\\"')}"}`, false);
+  addUser(`Re-plan ${t.origin} → ${t.destination}`);
+  try {
+    await sendToRasa("/reset_trip", false);
+    await sendToRasa("/plan_trip", false);          // activate the form (asks origin)
+    const order = [["origin", t.origin], ["destination", t.destination], ["travel_date", t.travel_date],
+                   ["num_travellers", t.num_travellers], ["budget", t.budget], ["sustainability_pref", t.sustainability_pref]];
+    for (const [slot, val] of order) {
+      if (val == null || val === "") continue;
+      await sendToRasa(`/inform{"${slot}": "${String(val).replace(/"/g, '\\"')}"}`, false);
+    }
+  } finally {
+    replaying = false;
   }
 }
 
@@ -565,6 +576,12 @@ function randomFlexRange(y, m, nights) {
 }
 
 function renderRasaResponses(responses) {
+  // While re-planning from history, show only the final cards (skip the
+  // intermediate slot questions and quick-reply rows).
+  if (replaying) {
+    (responses || []).forEach((msg) => { if (msg.custom) renderCustom(msg.custom); });
+    return;
+  }
   let buttons = [];
   (responses || []).forEach((msg) => {
     if (msg.text) addBotText(msg.text);
@@ -605,6 +622,7 @@ function renderRasaResponses(responses) {
 // ---- "thinking" indicator + input lock while waiting on Rasa ----
 let thinkingEl = null, thinkingTimer = null, lastSent = null;
 function showThinking() {
+  if (replaying) return;            // no per-step indicator while re-planning
   hideThinking();
   thinkingEl = appendMsg("msg--bot",
     `<div class="bubble typing" aria-label="Eco-Travel Advisor is thinking"><span></span><span></span><span></span></div>`);
