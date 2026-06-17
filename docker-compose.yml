@@ -1,1 +1,15 @@
-# Local dev: rasa + action server services — TO IMPLEMENT
+# Local run of the all-in-one image — the same image Hugging Face Spaces builds.
+#
+#   docker compose up --build
+#   then open http://localhost:7860
+#
+# Secrets are optional: create a .env file (see .env.example) to enable the live
+# database and APIs. Without it the assistant runs on the curated seed data.
+services:
+  eco-travel-advisor:
+    build: .
+    image: eco-travel-advisor
+    ports:
+      - "7860:7860"
+    env_file:
+      - .env

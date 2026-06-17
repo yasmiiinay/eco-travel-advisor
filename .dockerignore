@@ -1,0 +1,18 @@
+# Keep the build context (and image) small and free of secrets.
+.git
+.gitignore
+.venv
+venv
+models
+.rasa
+*.tar.gz
+__pycache__
+*.pyc
+.ipynb_checkpoints
+*.ipynb
+.DS_Store
+.env
+*.env
+results
+tests
+docs
