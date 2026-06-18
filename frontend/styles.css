@@ -502,7 +502,11 @@ body {
 .handover__role { font-size: .76rem; color: var(--muted); }
 .handover__check { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: .83rem; }
 .handover__check li::before { content: "✓ "; color: var(--green); font-weight: 800; }
-.handover__trip { margin: 10px 0 0; font-size: .82rem; color: var(--ink); background: #fff; border: 1px solid #bae6fd; border-radius: var(--radius-sm); padding: 9px 11px; }
+.handover__trip { margin: 10px 0 0; font-size: .82rem; color: var(--ink); background: #fff; border: 1px solid #bae6fd; border-radius: var(--radius-sm); padding: 9px 11px; display: flex; flex-direction: column; gap: 5px; }
+.handover__note { margin: 10px 0 0; font-size: .82rem; font-weight: 600; color: var(--accent); }
+.handover__row { display: flex; justify-content: space-between; gap: 12px; }
+.handover__k { color: var(--muted); }
+.handover__v { font-weight: 700; text-align: right; }
 
 /* ---------------- Reset confirm dialog ---------------- */
 .confirm {

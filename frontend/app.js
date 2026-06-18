@@ -416,11 +416,42 @@ function renderAlert(c) {
    -------------------------------------------------------------------------- */
 let advisorMode = false;
 let lastHandover = null;
+let dockBeforeHandover = null;
 
+// Step 1: ask before connecting (a trust checkpoint, not an instant jump).
+function startHandover() {
+  if (advisorMode) return;
+  dockBeforeHandover = dockEl.innerHTML;        // so "Stay" can restore the step
+  addBot("Connect you to a human travel advisor? They'll have your full trip context.");
+  setDock(`<div class="choices">
+    <button type="button" class="chip chip--primary" data-handover-confirm>Yes, connect me</button>
+    <button type="button" class="chip" data-handover-cancel>Stay with the assistant</button>
+  </div>`);
+}
+
+// Step 2: a short, honest "connecting" moment, then ask Rasa to package context.
+function connectToAdvisor() {
+  addBanner("Connecting you to a human advisor… usually under a minute.");
+  setDockHint("Connecting…");
+  setTimeout(() => sendToRasa("/request_human", "Talk to a human"), 1200);
+}
+
+// Step 3: the context-transfer card (the trust moment) — read-only trip snapshot.
 function renderHandover(c) {
   lastHandover = c;
   const s = c.summary || {};
   const checks = (c.transferred || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("");
+  const rows = [
+    ["Route", s.route],
+    ["Dates", s.travel_date],
+    ["Travellers", s.travellers],
+    ["Budget", s.budget],
+    ["Preference", s.preference],
+    (s.estimated_co2_kg != null && s.estimated_co2_kg !== "")
+      ? ["Est. carbon", `${s.estimated_co2_kg} kg CO₂e`] : null,
+  ].filter(Boolean).map(([k, v]) =>
+    `<div class="handover__row"><span class="handover__k">${escapeHtml(k)}</span>` +
+    `<span class="handover__v">${escapeHtml(String(v ?? "-"))}</span></div>`).join("");
   addFull(`
     <div class="handover">
       <div class="handover__head">
@@ -430,13 +461,22 @@ function renderHandover(c) {
           <div class="handover__role">${escapeHtml((c.advisor && c.advisor.role) || "Human travel advisor")}</div>
         </div>
       </div>
+      <p class="handover__note">Your full conversation has been shared with the advisor.</p>
       <ul class="handover__check">${checks}</ul>
-      <div class="handover__trip">
-        ${escapeHtml(s.route || "")} · ${escapeHtml(String(s.travel_date || "-"))} ·
-        ${escapeHtml(String(s.travellers || "-"))} traveller(s) · ${escapeHtml(String(s.preference || "-"))}
-      </div>
+      <div class="handover__trip">${rows}</div>
     </div>`);
   enterAdvisor(s);
+}
+
+// A "Maya is typing…" bubble so advisor replies feel human, not instant.
+function addAdvisorTyping() {
+  return appendMsg("msg--advisor",
+    `<div class="bubble"><span class="who"><span class="who__avatar">M</span>Maya · advisor</span>` +
+    `<span class="typing"><span></span><span></span><span></span></span></div>`);
+}
+function advisorSay(html, delay = 900) {
+  const t = addAdvisorTyping();
+  setTimeout(() => { if (t) t.remove(); addAdvisor(html); }, delay);
 }
 
 function enterAdvisor(summary) {
@@ -449,12 +489,19 @@ function enterAdvisor(summary) {
   document.getElementById("btn-return").hidden = false;
   addBanner("You're now chatting with Maya, a human travel advisor.");
 
-  const route = summary.route || "your trip";
+  const route = summary.route && summary.route !== "- → -" ? summary.route : "your trip";
   const date = summary.travel_date && summary.travel_date !== "-" ? ` on ${summary.travel_date}` : "";
   const pref = summary.preference && summary.preference !== "-" ? ` and your “${summary.preference}” preference` : "";
-  setDockHint("You're talking to a person now, so type your message below.");
-  setTimeout(() => addAdvisor(`Hi, I'm Maya 👋 I can see your <b>${escapeHtml(route)}</b> plan${escapeHtml(pref)}.`), 500);
-  setTimeout(() => addAdvisor(`Want me to check greener rail availability${escapeHtml(date)} and tailor the eco-hotels for you?`), 1500);
+
+  // Free text is primary in advisor mode; two quick actions help.
+  setDock(`<p class="dock__hint">You're talking to a person now — type below, or:</p>
+    <div class="choices">
+      <button type="button" class="chip" data-advisor-summary>📋 Share trip summary</button>
+      <button type="button" class="chip" data-advisor-end>End chat</button>
+    </div>`);
+
+  advisorSay(`Hi, I'm Maya 👋 I can see your <b>${escapeHtml(route)}</b> plan${escapeHtml(pref)}.`, 700);
+  advisorSay(`Want me to check greener rail availability${escapeHtml(date)} and tailor the eco-hotels for you?`, 1900);
 }
 
 const ADVISOR_LINES = [
@@ -467,7 +514,15 @@ let advisorTurn = 0;
 function advisorReply() {
   const line = ADVISOR_LINES[advisorTurn % ADVISOR_LINES.length];
   advisorTurn++;
-  setTimeout(() => addAdvisor(escapeHtml(line)), 500);
+  advisorSay(escapeHtml(line), 900);
+}
+
+// Re-share the trip snapshot inside advisor mode.
+function advisorShareSummary() {
+  const s = (lastHandover && lastHandover.summary) || {};
+  advisorSay(`Here's what I have: <b>${escapeHtml(s.route || "your trip")}</b> · ` +
+    `${escapeHtml(String(s.travel_date || "-"))} · ${escapeHtml(String(s.travellers || "-"))} traveller(s) · ` +
+    `${escapeHtml(String(s.budget || "-"))} · ${escapeHtml(String(s.preference || "-"))}.`, 600);
 }
 
 function returnToAssistant() {
@@ -797,7 +852,11 @@ document.addEventListener("click", (ev) => {
   const el = ev.target.closest("[data-rasa-payload]");
   if (!el) return;
   if (advisorMode) return;            // advisor mode pauses the planner
-  sendToRasa(el.dataset.rasaPayload, el.dataset.userLabel || el.textContent.trim());
+  const payload = el.dataset.rasaPayload;
+  // Route any "talk to a human" chip (e.g. the fallback escalation) through the
+  // confirm → connect flow instead of jumping straight into advisor mode.
+  if (payload === "/request_human") { startHandover(); return; }
+  sendToRasa(payload, el.dataset.userLabel || el.textContent.trim());
 });
 
 // Dock widgets: retry, "More cities" expander, date-range confirm.
@@ -805,8 +864,16 @@ dockEl.addEventListener("click", (ev) => {
   const retry = ev.target.closest("[data-retry]");
   if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
 
-  // Welcome: secondary "Talk to a human".
-  if (ev.target.closest("[data-handover-start]")) { sendToRasa("/request_human", "Talk to a human"); return; }
+  // Human-advisor handover: confirm → connect, and the advisor-mode actions.
+  if (ev.target.closest("[data-handover-start]")) { startHandover(); return; }
+  if (ev.target.closest("[data-handover-confirm]")) { connectToAdvisor(); return; }
+  if (ev.target.closest("[data-handover-cancel]")) {
+    addBot("No problem — let's keep planning.");
+    if (dockBeforeHandover !== null) setDock(dockBeforeHandover);
+    return;
+  }
+  if (ev.target.closest("[data-advisor-summary]")) { advisorShareSummary(); return; }
+  if (ev.target.closest("[data-advisor-end]")) { returnToAssistant(); return; }
 
   // Traveller stepper.
   const tStep = ev.target.closest("[data-trav-step]");
@@ -929,7 +996,7 @@ document.getElementById("composer").addEventListener("submit", (ev) => {
 // Header controls
 document.getElementById("btn-back").addEventListener("click", () => sendToRasa("/go_back", "Go back"));
 document.getElementById("btn-edit").addEventListener("click", openEditMenu);
-document.getElementById("btn-handover").addEventListener("click", () => sendToRasa("/request_human", "Talk to a human"));
+document.getElementById("btn-handover").addEventListener("click", startHandover);
 document.getElementById("btn-return").addEventListener("click", returnToAssistant);
 document.getElementById("btn-reset").addEventListener("click", openConfirm);
 
