@@ -614,26 +614,117 @@ function renderRasaResponses(responses) {
     if (seen.has(key)) return false; seen.add(key); return true;
   });
 
-  // Detect the current step from the button payloads.
-  const isCity = buttons.length && buttons.every((b) => /"(origin|destination)"\s*:/.test(b.payload || ""));
+  // Detect the current step from the button payloads, then render a purpose-built,
+  // tappable control for that step (the happy path needs zero typing).
+  const every = (re) => buttons.length && buttons.every((b) => re.test(b.payload || ""));
+  const isCity = every(/"(origin|destination)"\s*:/);
   const isDate = buttons.some((b) => /"travel_date"\s*:\s*"flexible"/.test(b.payload || ""));
+  const isTravellers = every(/"num_travellers"\s*:/);
+  const isBudget = every(/"budget"\s*:/);
+  const isPref = every(/"sustainability_pref"\s*:/);
+  const isWelcome = buttons.length === 1 && /^\/plan_trip\b/.test(buttons[0].payload || "");
 
+  if (isWelcome) { setDock(buildWelcomeDock()); return; }
   if (isCity) {
     const field = /"origin"/.test(buttons[0].payload) ? "origin" : "destination";
     setDock(buildCitySelector(field));
     return;
   }
   if (isDate) { setDock(buildDatePicker()); return; }
+  if (isTravellers) { setDock(buildTravellerStepper()); return; }
+  if (isBudget) { setDock(buildBudgetCards()); return; }
+  if (isPref) { setDock(buildPrefChips(buttons)); return; }
 
   if (buttons.length) {
-    const chips = buttons.map((b) => {
-      const title = b.title === "Just me" ? "1" : b.title;   // show "1" for the solo traveller option
-      return `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(title)}</button>`;
-    }).join("");
+    const chips = buttons.map((b) =>
+      `<button type="button" class="chip" data-rasa-payload="${escapeHtml(b.payload)}">${escapeHtml(b.title)}</button>`
+    ).join("");
     setDock(`<p class="dock__hint">Tap an option, or type your answer below.</p><div class="choices">${chips}</div>`);
   } else {
     setDockHint("Type your reply below, or use the controls above.");
   }
+}
+
+// --- Step widgets (all send the same Rasa payloads as the original buttons) ---
+
+// Welcome: a single, confident primary call-to-action.
+function buildWelcomeDock() {
+  return `<p class="dock__hint">Plan a lower-carbon trip between European cities — I'll ask six quick questions.</p>
+    <div class="choices">
+      <button type="button" class="chip chip--primary chip--cta" data-rasa-payload="/plan_trip" data-user-label="Plan a trip">🌿 Plan a trip</button>
+      <button type="button" class="chip" data-handover-start>🧑‍💼 Talk to a human</button>
+    </div>
+    <p class="dock__foot">Carbon figures are estimates.</p>`;
+}
+
+// Traveller stepper: − value + with quick presets and a Continue button.
+let travCount = 2;
+function buildTravellerStepper() {
+  travCount = 2;
+  return `<p class="dock__hint">How many are travelling?</p>
+    <div class="stepper" role="group" aria-label="Number of travellers">
+      <button type="button" class="stepper__btn" data-trav-step="-1" aria-label="One fewer traveller">−</button>
+      <span class="stepper__val" id="trav-val" aria-live="polite">2</span>
+      <button type="button" class="stepper__btn" data-trav-step="1" aria-label="One more traveller">+</button>
+    </div>
+    <div class="choices">
+      <button type="button" class="chip" data-trav-set="1">Solo</button>
+      <button type="button" class="chip" data-trav-set="2">Couple</button>
+      <button type="button" class="chip" data-trav-set="4">Family of 4</button>
+    </div>
+    <button type="button" class="chip chip--primary" data-trav-continue>Continue</button>`;
+}
+function setTrav(n) {
+  travCount = Math.min(9, Math.max(1, n));
+  const el = document.getElementById("trav-val");
+  if (el) el.textContent = String(travCount);
+}
+
+// Budget: three tier cards (Budget/Mid/Comfort) + an exact-amount option.
+function buildBudgetCards() {
+  const tiers = [
+    { key: "budget", name: "Budget", sym: "€", desc: "Lowest cost; hostels and rail where it helps." },
+    { key: "mid", name: "Mid", sym: "€€", desc: "Balanced mid-range stays and faster options." },
+    { key: "comfort", name: "Comfort", sym: "€€€", desc: "Top eco-certified stays, flexible transport." },
+  ];
+  const cards = tiers.map((t) =>
+    `<button type="button" class="tier" data-rasa-payload="${escapeHtml(`/inform{"budget": "${t.key}"}`)}" data-user-label="${t.name} ${t.sym}">
+       <span class="tier__head"><span class="tier__name">${t.name}</span><span class="tier__sym">${t.sym}</span></span>
+       <span class="tier__desc">${t.desc}</span>
+     </button>`).join("");
+  return `<p class="dock__hint">Pick a budget per person, or set an exact amount.</p>
+    <div class="tiers">${cards}</div>
+    <button type="button" class="chip chip--more" data-budget-exact>Set exact amount</button>`;
+}
+function buildBudgetExact() {
+  return `<p class="dock__hint">Roughly how much per person, per day?</p>
+    <div class="exact">
+      <span class="exact__cur" aria-hidden="true">€</span>
+      <input type="number" id="budget-amount" class="exact__input" min="1" inputmode="numeric"
+             placeholder="e.g. 120" aria-label="Budget per person per day in euros" />
+      <button type="button" class="chip chip--primary" data-budget-confirm>Use this</button>
+    </div>
+    <button type="button" class="chip chip--more" data-budget-tiers>← Back to tiers</button>`;
+}
+
+// Sustainability preference: descriptive chips (one tap each), keeping Rasa payloads.
+function buildPrefChips(buttons) {
+  const SUB = {
+    low_carbon: "Greenest options first",
+    eco_certified: "Certified-green stays",
+    local_culture: "Support local & culture",
+    balanced: "A sensible mix of cost & carbon",
+  };
+  const chips = buttons.map((b) => {
+    const m = /"sustainability_pref"\s*:\s*"([^"]+)"/.exec(b.payload || "");
+    const sub = m ? SUB[m[1]] || "" : "";
+    return `<button type="button" class="pref" data-rasa-payload="${escapeHtml(b.payload)}" data-user-label="${escapeHtml(b.title)}">
+       <span class="pref__name">${escapeHtml(b.title)}</span>
+       ${sub ? `<span class="pref__sub">${escapeHtml(sub)}</span>` : ""}
+     </button>`;
+  }).join("");
+  return `<p class="dock__hint">What matters most for keeping this green?</p>
+    <div class="prefs">${chips}</div>`;
 }
 
 // ---- "thinking" indicator + input lock while waiting on Rasa ----
@@ -713,6 +804,30 @@ document.addEventListener("click", (ev) => {
 dockEl.addEventListener("click", (ev) => {
   const retry = ev.target.closest("[data-retry]");
   if (retry && lastSent) { sendToRasa(lastSent.message, false); return; }
+
+  // Welcome: secondary "Talk to a human".
+  if (ev.target.closest("[data-handover-start]")) { sendToRasa("/request_human", "Talk to a human"); return; }
+
+  // Traveller stepper.
+  const tStep = ev.target.closest("[data-trav-step]");
+  if (tStep) { setTrav(travCount + Number(tStep.dataset.travStep)); return; }
+  const tSet = ev.target.closest("[data-trav-set]");
+  if (tSet) { setTrav(Number(tSet.dataset.travSet)); return; }
+  if (ev.target.closest("[data-trav-continue]")) {
+    sendToRasa(`/inform{"num_travellers": "${travCount}"}`, `${travCount} traveller${travCount === 1 ? "" : "s"}`);
+    return;
+  }
+
+  // Budget: switch between tiers and the exact-amount input.
+  if (ev.target.closest("[data-budget-exact]")) { setDock(buildBudgetExact()); return; }
+  if (ev.target.closest("[data-budget-tiers]")) { setDock(buildBudgetCards()); return; }
+  if (ev.target.closest("[data-budget-confirm]")) {
+    const v = Number((document.getElementById("budget-amount") || {}).value);
+    if (!v || v <= 0) { const inp = document.getElementById("budget-amount"); if (inp) inp.focus(); return; }
+    sendToRasa(`/inform{"budget": "${v}"}`, `€${v}/day`);
+    return;
+  }
+
   const flex = ev.target.closest("[data-flex-length]");
   if (flex) {                                          // flexible -> pick a month
     addUser("I'm flexible");

@@ -248,6 +248,61 @@ body {
 .chip--city.is-hidden { display: none; }
 .chip--more { border-style: dashed; color: var(--brand-2); font-weight: 700; }
 
+/* ---------------- Guided step widgets ---------------- */
+/* Welcome dock */
+.chip--cta { font-size: 1rem; padding: 13px 20px; }
+.dock__foot { margin: 8px 0 0; font-size: .72rem; color: var(--muted); }
+
+/* Traveller stepper */
+.stepper {
+  display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px;
+  border: 1.5px solid var(--line); border-radius: 999px; padding: 4px; background: var(--surface-2);
+}
+.stepper__btn {
+  width: 44px; height: 44px; border: none; background: transparent; border-radius: 999px;
+  font-size: 1.4rem; font-weight: 700; color: var(--brand-2); cursor: pointer; line-height: 1;
+}
+.stepper__btn:hover { background: var(--green-bg); }
+.stepper__val { min-width: 42px; text-align: center; font-size: 1.1rem; font-weight: 800; }
+
+/* Budget tier cards */
+.tiers { display: flex; flex-direction: column; gap: 9px; margin-bottom: 10px; }
+.tier {
+  text-align: left; background: var(--surface-2); border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: border-color .15s ease, background .15s ease, transform .08s ease;
+}
+.tier:hover { border-color: var(--brand); background: var(--green-bg); }
+.tier:active { transform: translateY(1px); }
+.tier__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.tier__name { font-weight: 800; font-size: .98rem; }
+.tier__sym { font-weight: 800; color: var(--brand-2); letter-spacing: 1px; }
+.tier__desc { font-size: .82rem; color: var(--muted); }
+@media (min-width: 560px) { .tiers { flex-direction: row; } .tier { flex: 1; } }
+
+/* Budget exact amount */
+.exact { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.exact__cur { font-weight: 800; font-size: 1.1rem; color: var(--brand-2); }
+.exact__input {
+  flex: 1; min-width: 0; padding: 11px 12px; border: 1.5px solid var(--line);
+  border-radius: 12px; font-size: .96rem; min-height: 44px; background: var(--surface-2); color: var(--ink);
+}
+.exact__input:focus { background: #fff; }
+
+/* Sustainability preference chips */
+.prefs { display: flex; flex-direction: column; gap: 9px; }
+.pref {
+  text-align: left; background: var(--surface-2); border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm); padding: 11px 14px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px;
+  transition: border-color .15s ease, background .15s ease, transform .08s ease;
+}
+.pref:hover { border-color: var(--brand); background: var(--green-bg); }
+.pref:active { transform: translateY(1px); }
+.pref__name { font-weight: 700; font-size: .95rem; }
+.pref__sub { font-size: .8rem; color: var(--muted); }
+
 /* Date-range picker */
 .datepick { display: flex; flex-direction: column; gap: 10px; }
 .datepick__field { display: flex; flex-direction: column; gap: 4px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
