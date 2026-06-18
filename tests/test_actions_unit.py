@@ -75,6 +75,43 @@ def test_budget_tiers_are_consistent():
         assert actions._budget_tier_from_amount(amount) == tier, amount
 
 
+# --- B-5: the travel-date validator accepts only real dates / safe phrases -----
+
+from rasa_sdk.executor import CollectingDispatcher   # noqa: E402
+
+
+def _validate_date(value):
+    """Call the form's travel_date validator (it uses only slot_value + dispatcher)."""
+    form = actions.ValidateTripPlanningForm()
+    return form.validate_travel_date(value, CollectingDispatcher(), None, {})
+
+
+def test_date_rejects_nonsense():
+    assert _validate_date("asdkfj qwerty next bluemoon") == {"travel_date": None}
+    assert _validate_date("bluemoon") == {"travel_date": None}
+    assert _validate_date("random words here") == {"travel_date": None}
+
+
+def test_date_rejects_bare_number():
+    assert _validate_date("65") == {"travel_date": None}
+
+
+def test_date_accepts_flexible():
+    assert _validate_date("flexible") == {"travel_date": "Flexible dates"}
+    assert _validate_date("Flexible dates") == {"travel_date": "Flexible dates"}
+
+
+def test_date_accepts_valid_ranges():
+    assert _validate_date("2026-07-02 to 2026-07-09") == {"travel_date": "2026-07-02 to 2026-07-09"}
+    assert _validate_date("02 Jul 2026 – 09 Jul 2026 · 7 nights") == \
+        {"travel_date": "02 Jul 2026 – 09 Jul 2026 · 7 nights"}
+    assert _validate_date("15 August to 20 August") == {"travel_date": "15 August to 20 August"}
+
+
+def test_date_accepts_safe_phrase():
+    assert _validate_date("next week") == {"travel_date": "next week"}
+
+
 if __name__ == "__main__":
     # Allow running without pytest: execute every test_* function and report.
     failures = 0

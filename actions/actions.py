@@ -415,9 +415,14 @@ class ValidateTripPlanningForm(FormValidationAction):
         # the date picker sends, e.g. "19 Jun 2026 – 23 Jun 2026 · 4 nights".
         _MONTHS = ("jan", "feb", "mar", "apr", "may", "jun",
                    "jul", "aug", "sep", "oct", "nov", "dec")
+        # A date "looks real" if it names a month, carries a 4-digit year, or is a
+        # numeric range (a digit alongside a dash or "to"). A bare dash without any
+        # digit (e.g. "blue-moon") does NOT count, so nonsense can't sneak through.
+        has_digit = any(ch.isdigit() for ch in text)
         looks_like_date = (
-            any(m in low for m in _MONTHS) or "–" in text or "-" in text
-            or " to " in low or any(t.isdigit() and len(t) == 4 for t in low.split())
+            any(m in low for m in _MONTHS)
+            or any(t.isdigit() and len(t) == 4 for t in low.split())
+            or (has_digit and ("–" in text or "-" in text or " to " in low))
         )
         has_duration_word = any(w in low for w in ("day", "night", "week"))
         if not looks_like_date and (compact.isdigit() or has_duration_word):
@@ -435,7 +440,21 @@ class ValidateTripPlanningForm(FormValidationAction):
                           "\"Flexible dates\", or say how many days (e.g. \"5 days\").")
                 )
                 return {"travel_date": None}
-        return {"travel_date": text}
+        # Accept only a real-looking date or a known safe relative phrase; reject
+        # unparseable text ("bluemoon", "asdkfj qwerty") so it never reaches the slot.
+        _SAFE_DATE_PHRASES = (
+            "next week", "next weekend", "next month", "next year",
+            "this week", "this weekend", "this month",
+            "next spring", "next summer", "next autumn", "next fall", "next winter",
+            "this spring", "this summer", "this autumn", "this fall", "this winter",
+        )
+        if looks_like_date or any(p in low for p in _SAFE_DATE_PHRASES):
+            return {"travel_date": text}
+        dispatcher.utter_message(
+            text=("I couldn't recognise that as a travel date. "
+                  "Please choose a date range or select \"Flexible dates\"."),
+        )
+        return {"travel_date": None}
 
     def validate_num_travellers(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         count = _parse_travellers(slot_value)
