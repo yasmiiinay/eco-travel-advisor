@@ -669,6 +669,11 @@ function renderRasaResponses(responses) {
     if (seen.has(key)) return false; seen.add(key); return true;
   });
 
+  // In advisor mode the dock is owned by enterAdvisor / the advisor actions — the
+  // planner's step detection must not overwrite it (this was hiding the advisor
+  // "Share trip summary / End chat" chips behind "use the controls above").
+  if (advisorMode) return;
+
   // Detect the current step from the button payloads, then render a purpose-built,
   // tappable control for that step (the happy path needs zero typing).
   const every = (re) => buttons.length && buttons.every((b) => re.test(b.payload || ""));

@@ -105,10 +105,14 @@ body {
 .app[data-mode="advisor"] .dot { background: #67e8f9; box-shadow: 0 0 0 3px rgba(103,232,249,.25); }
 
 .mode-badge {
-  margin-left: 6px; font-size: .68rem; font-weight: 700; letter-spacing: .03em;
+  margin-left: 6px; flex: none; align-self: center; white-space: nowrap;
+  font-size: .68rem; font-weight: 700; letter-spacing: .03em;
   text-transform: uppercase; padding: 3px 9px; border-radius: 999px;
   background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
 }
+/* On narrow screens the long advisor title can collide with the badge — hide the
+   badge there (the title already states the mode). */
+@media (max-width: 480px) { .mode-badge { display: none; } }
 
 .controls { display: flex; flex-wrap: wrap; gap: 8px; }
 .ctrl {

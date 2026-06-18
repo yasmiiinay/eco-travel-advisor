@@ -947,7 +947,11 @@ class ActionHandover(Action):
             "transferred": ["Trip details", "Recommendations shown", "Chat history"],
             "fallback_text": fallback,
         })
-        return []
+        # Close the slot-filling loop on handover. The collected slots are kept, but
+        # the form is no longer "active", so if the user returns and keeps typing the
+        # planner resumes cleanly (the inform->form rule re-asks the next missing
+        # slot) instead of leaving a stale, half-active form behind.
+        return [ActiveLoop(None), SlotSet("requested_slot", None)]
 
 
 # ===========================================================================
