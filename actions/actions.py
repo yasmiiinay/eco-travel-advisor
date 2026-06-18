@@ -14,6 +14,7 @@ Design notes
   FollowupAction so the conversation resumes deterministically.
 """
 
+import re
 from typing import Any, Dict, List, Optional, Text
 
 from rasa_sdk import Action, FormValidationAction, Tracker
@@ -205,6 +206,53 @@ DEST_BUTTONS = [
     {"title": "Barcelona", "payload": '/inform{"destination": "Barcelona"}'},
     {"title": "Amsterdam", "payload": '/inform{"destination": "Amsterdam"}'},
 ]
+# Same six cities, but as origin payloads — shown when an origin is rejected.
+ORIGIN_BUTTONS = [
+    {"title": "London", "payload": '/inform{"origin": "London"}'},
+    {"title": "Paris", "payload": '/inform{"origin": "Paris"}'},
+    {"title": "Madrid", "payload": '/inform{"origin": "Madrid"}'},
+    {"title": "Rome", "payload": '/inform{"origin": "Rome"}'},
+    {"title": "Berlin", "payload": '/inform{"origin": "Berlin"}'},
+    {"title": "Barcelona", "payload": '/inform{"origin": "Barcelona"}'},
+]
+
+# Parse a "from <origin> to <destination>" sentence so a single free-text message
+# (e.g. "I want to plan a trip from London to Paris") can fill both city slots at
+# once, even when the NLU model does not tag both entities.
+_FROM_TO_RE = re.compile(r"\bfrom\s+(.+?)\s+to\s+(.+?)\s*$", re.IGNORECASE)
+
+
+def _parse_from_to(text: Optional[str]) -> tuple:
+    """Return (origin_phrase, destination_phrase) from a 'from X to Y' sentence."""
+    if not text:
+        return (None, None)
+    cleaned = str(text).strip().rstrip(".!?")
+    match = _FROM_TO_RE.search(cleaned)
+    if match:
+        return (match.group(1).strip(), match.group(2).strip())
+    return (None, None)
+
+
+def _resolve_supported_origin(phrase: Optional[str]) -> Optional[dict]:
+    """Resolve a phrase to a supported origin city, retrying on the first word
+    (so 'London please' still resolves to London). Returns the dict or None."""
+    if not phrase:
+        return None
+    match = repository.resolve_origin(phrase)
+    if match is None and phrase.split():
+        match = repository.resolve_origin(phrase.split()[0])
+    return match
+
+
+def _resolve_supported_destination(phrase: Optional[str]) -> Optional[dict]:
+    """Resolve a phrase to a supported destination, retrying on the first word
+    (so 'Paris next week' still resolves to Paris). Returns the dict or None."""
+    if not phrase:
+        return None
+    dest, _ = repository.resolve_destination(phrase)
+    if dest is None and phrase.split():
+        dest, _ = repository.resolve_destination(phrase.split()[0])
+    return dest
 
 
 # ===========================================================================
@@ -250,7 +298,8 @@ class ValidateTripPlanningForm(FormValidationAction):
 
     def validate_origin(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):
-            dispatcher.utter_message(text="No problem, which city are you starting from?")
+            dispatcher.utter_message(text="No problem, which city are you starting from?",
+                                     buttons=ORIGIN_BUTTONS)
             return {"origin": None}
         if not slot_value or not str(slot_value).strip():
             return {"origin": None}
@@ -261,7 +310,7 @@ class ValidateTripPlanningForm(FormValidationAction):
                 lat, lon = (float(x) for x in raw[4:].split(",")[:2])
             except Exception:
                 dispatcher.utter_message(text="I couldn't read your location, so please pick a city.",
-                                         buttons=DEST_BUTTONS)
+                                         buttons=ORIGIN_BUTTONS)
                 return {"origin": None}
             city, name, dist = geo.resolve_location(lat, lon)
             if city:
@@ -269,17 +318,40 @@ class ValidateTripPlanningForm(FormValidationAction):
                 dispatcher.utter_message(text=f"📍 Using your nearest supported city, {city}{where}, as your origin.")
                 return {"origin": city}
             dispatcher.utter_message(text="I couldn't match your location to a supported city, so please pick one.",
-                                     buttons=DEST_BUTTONS)
+                                     buttons=ORIGIN_BUTTONS)
             return {"origin": None}
-        # Fuzzy-resolve so typos normalise to a canonical city ("madridd" -> Madrid).
-        match = repository.resolve_origin(str(slot_value))
+        # Free-text "from X to Y": fill BOTH city slots from one message, even when
+        # the NLU model tagged only one entity (or neither). The message that
+        # activated the form is the authoritative text here.
+        latest_text = (tracker.latest_message or {}).get("text") or raw
+        o_phrase, d_phrase = _parse_from_to(latest_text)
+        if o_phrase:
+            o_match = _resolve_supported_origin(o_phrase)
+            if o_match:
+                result = {"origin": o_match["city"]}
+                d_dest = _resolve_supported_destination(d_phrase) if d_phrase else None
+                if d_dest and d_dest["city"].lower() != o_match["city"].lower():
+                    result["destination"] = d_dest["city"]
+                if "destination" in result:
+                    dispatcher.utter_message(
+                        text=f"Great, planning {result['origin']} to {result['destination']}."
+                    )
+                elif o_match["city"].lower() != o_phrase.strip().lower():
+                    dispatcher.utter_message(text=f"I understood that as {o_match['city']}.")
+                return result
+        # Single city, typo-tolerant: "madridd" -> Madrid, with a confirmation.
+        match = repository.resolve_origin(raw)
         if match:
             city = match["city"]
-            if city.lower() != str(slot_value).strip().lower():
+            if city.lower() != raw.lower():
                 dispatcher.utter_message(text=f"I understood that as {city}.")
             return {"origin": city}
-        # Unknown origin: accept tidied text; the distance engine still fuzzy-matches.
-        return {"origin": str(slot_value).strip().title()}
+        # Unsupported city: do NOT store it. Show the supported list and re-ask.
+        dispatcher.utter_message(
+            text=f"Sorry, I don't support '{raw}' as a starting city yet. " + SUPPORTED_LINE,
+            buttons=ORIGIN_BUTTONS,
+        )
+        return {"origin": None}
 
     def validate_destination(self, slot_value, dispatcher, tracker, domain) -> Dict[Text, Any]:
         if _is_uninformative(slot_value):

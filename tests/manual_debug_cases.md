@@ -107,7 +107,7 @@ Run in the connected UI after `rasa train` + restarting both servers.
 | S-01 | At the **travel_date** step, type `65` (or `100`) | Rejected (not a plausible date or trip length); slot not set. |
 | S-01b | At the **travel_date** step, type `5` / `5 days` / `2 weeks` | Interpreted as a flexible trip length → `Flexible · 4–7 days` / `Flexible · 8+ days`; no re-ask. A real date like `12 June` is left untouched. |
 | S-02 | At the **budget** step, type `65` (or `€65`, `65 per day`) | Accepted: "about €65/day, so I'll use the Budget tier." Summary shows `€65/day · Budget`. |
-| S-03 | At the **budget** step, type `100` / `around 150 per day` | 100 → Comfort/Mid tier; 150 → Mid; >150 → Premium/Comfort. Summary shows amount · tier. |
+| S-03 | At the **budget** step, type `100` / `around 150 per day` | One consistent rule: 65→Budget, 100/150→Mid, 180→Comfort. The chat tier name and the summary label match exactly (e.g. `€100/day · Mid €€`). |
 | S-04 | Date step → tap **I'm flexible** | Summary shows **Flexible dates** (not "flexible" or a raw value). |
 | S-05 | Date step → pick start + end | Summary shows `02 Jul 2026 – 15 Jul 2026 · 13 nights`. |
 | S-16 | Origin `roma` (Rome), then destination `londra` (London) — two different cities | Accepted as **Rome → London**; NO false "destination can't be the same as origin". Root cause was `from_entity` filling a slot regardless of the requested step; fixed by adding a `requested_slot` condition to every form slot's `from_entity` mapping (so a stray entity at the wrong step can no longer overwrite another slot). |
@@ -124,3 +124,20 @@ Run in the connected UI after `rasa train` + restarting both servers.
 | S-13 | Fresh load (no trip yet) | **Back** and **Edit** are disabled. |
 | S-14 | Any step | One prompt + one button group; no duplicated questions or buttons. |
 | S-15 | Throughout | "Your trip" summary fills from the **tracker** (GET /conversations/{id}/tracker): From/To/Dates/Travellers/Budget/Priority all reliable, x/6 correct. |
+
+---
+
+## Bug-fix sprint (QA round 2)
+
+| # | Steps | Expected |
+|---|---|---|
+| B-1 | **origin** step → type `adana` (or `izmir`, `konya`) | Rejected: "Sorry, I don't support 'adana' as a starting city yet." + supported-city buttons; **origin slot stays empty**; the origin step is re-asked. |
+| B-2 | **destination** step → type `adana` | Same rejection + supported-city buttons; destination slot not set; step re-asked. |
+| B-3 | Fresh session → type `I want to plan a trip from London to Paris` | Form starts with **origin=London, destination=Paris** already set; bot says "Great, planning London to Paris." and asks for **travel dates** next. |
+| B-4 | **budget** step → type `65`, then (new trip) `100`, then `180` | 65→Budget, 100→Mid, 180→Comfort. Chat tier name and summary label are identical (`€100/day · Mid €€`). |
+| B-5 | **date** picker → set end before start, or leave end empty, or any odd input | Never shows "Invalid Date" or impossible night counts; shows a clear "End date must be after the start date." message instead. Picker also caps the year (max ~18 months out). |
+| B-6 | Send any message (fast or slow) | Three-dot typing indicator is always visible for a beat; send button **and** quick replies are locked while waiting; after ~8s a "Still checking your trip options…" line appears; everything re-enables on reply or error. |
+| B-7 | **origin** step → type `berln` / `madridd` / `londra` | Supported typo resolves with the same confirmation as destinations: "I understood that as Berlin/Madrid/London." (consistent with DC-03). |
+
+Automated coverage for B-1..B-4 and B-7 lives in `tests/test_actions_unit.py`
+(`python -m pytest tests/test_actions_unit.py`). B-5 and B-6 are frontend-only manual checks.

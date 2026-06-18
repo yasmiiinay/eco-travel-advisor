@@ -76,7 +76,9 @@ const FIELD_EDIT_TITLE = {
   origin: "Origin", destination: "Destination", travel_date: "Travel dates",
   num_travellers: "Travellers", budget: "Budget", sustainability_pref: "Preference",
 };
-const BUDGET_LABEL = { budget: "Budget €", mid: "Comfort €€", comfort: "Premium €€€" };
+// One consistent label set, matching the backend tier names (Budget / Mid / Comfort)
+// and the budget buttons, so the chat text and the summary never disagree.
+const BUDGET_LABEL = { budget: "Budget €", mid: "Mid €€", comfort: "Comfort €€€" };
 const PREF_LABEL = {
   low_carbon: "Lowest carbon", eco_certified: "Eco-certified stays",
   local_culture: "Local community", balanced: "Balanced",
@@ -510,14 +512,18 @@ function buildCitySelector(field) {
 // Date range picker (start / end / flexible). Sends travel_date as text.
 function buildDatePicker() {
   const today = new Date().toISOString().slice(0, 10);
+  // Cap selection ~18 months out so the native picker can't yield a 6-digit year
+  // (which produced impossible night counts).
+  const maxD = new Date(); maxD.setMonth(maxD.getMonth() + 18);
+  const maxDate = maxD.toISOString().slice(0, 10);
   return `
     <p class="dock__hint">Pick your dates, or choose flexible.</p>
     <div class="datepick">
       <label class="datepick__field">Start
-        <input type="date" id="date-start" min="${today}" class="datepick__input" />
+        <input type="date" id="date-start" min="${today}" max="${maxDate}" class="datepick__input" />
       </label>
       <label class="datepick__field">End
-        <input type="date" id="date-end" min="${today}" class="datepick__input" />
+        <input type="date" id="date-end" min="${today}" max="${maxDate}" class="datepick__input" />
       </label>
       <div class="datepick__actions">
         <button type="button" class="chip chip--primary" data-date-confirm>Use these dates</button>
@@ -556,10 +562,21 @@ function buildFlexNights() {
 
 function fmtDate(iso) {
   const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return String(iso || "");      // never render the literal "Invalid Date"
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 function fmtDateObj(d) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// Whole nights between two ISO dates, or null if the pair is invalid, reversed,
+// or absurdly far apart. Callers must treat null as "show a validation message".
+function safeNights(sIso, eIso) {
+  const s = new Date(sIso + "T00:00:00"), e = new Date(eIso + "T00:00:00");
+  if (isNaN(s) || isNaN(e)) return null;
+  const n = Math.round((e - s) / 86400000);
+  if (n < 1 || n > 366) return null;
+  return n;
 }
 
 // A concrete random date range of `nights` inside the chosen month (no past days).
@@ -620,15 +637,17 @@ function renderRasaResponses(responses) {
 }
 
 // ---- "thinking" indicator + input lock while waiting on Rasa ----
-let thinkingEl = null, thinkingTimer = null, lastSent = null;
+let thinkingEl = null, thinkingTimer = null, thinkingShownAt = 0, lastSent = null;
+const MIN_THINKING_MS = 350;        // keep the indicator visible even on instant replies
 function showThinking() {
   if (replaying) return;            // no per-step indicator while re-planning
   hideThinking();
+  thinkingShownAt = Date.now();
   thinkingEl = appendMsg("msg--bot",
     `<div class="bubble typing" aria-label="Eco-Travel Advisor is thinking"><span></span><span></span><span></span></div>`);
   textInputEl.disabled = true;
   sendBtnEl.disabled = true;
-  dockEl.classList.add("is-busy");
+  dockEl.classList.add("is-busy");   // pointer-events:none dims and locks quick replies
   thinkingTimer = setTimeout(() => {
     if (thinkingEl) {
       thinkingEl.classList.remove("msg--bot");
@@ -640,9 +659,19 @@ function showThinking() {
 function hideThinking() {
   if (thinkingTimer) { clearTimeout(thinkingTimer); thinkingTimer = null; }
   if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+  thinkingShownAt = 0;
   textInputEl.disabled = false;
   sendBtnEl.disabled = false;
   dockEl.classList.remove("is-busy");
+}
+// Remove the indicator, but only after it has been visible for a beat, so a near-
+// instant response still shows a clear typing state rather than flickering.
+async function finishThinking() {
+  const elapsed = thinkingShownAt ? Date.now() - thinkingShownAt : MIN_THINKING_MS;
+  if (elapsed < MIN_THINKING_MS) {
+    await new Promise((r) => setTimeout(r, MIN_THINKING_MS - elapsed));
+  }
+  hideThinking();
 }
 
 async function sendToRasa(message, userLabel) {
@@ -658,11 +687,11 @@ async function sendToRasa(message, userLabel) {
     });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    hideThinking();
+    await finishThinking();
     renderRasaResponses(data);
     refreshFromTracker();             // authoritative slot state for the summary
   } catch (err) {
-    hideThinking();
+    await finishThinking();
     addBot("I couldn't reach the assistant just now. Please check the connection and try again.");
     setDock(`<div class="choices"><button type="button" class="chip chip--primary" data-retry>↻ Retry</button></div>`);
   }
@@ -731,8 +760,12 @@ dockEl.addEventListener("click", (ev) => {
     const out = document.getElementById("date-out");
     if (!s) { if (out) out.textContent = "Please choose a start date, or tap “I'm flexible”."; return; }
     let label;
-    if (e && e >= s) {
-      const nights = Math.round((new Date(e) - new Date(s)) / 86400000);
+    if (e) {
+      const nights = safeNights(s, e);
+      if (nights === null) {
+        if (out) out.textContent = "Please choose an end date after the start date (within about a year).";
+        return;
+      }
       label = `${fmtDate(s)} – ${fmtDate(e)} · ${nights} night${nights === 1 ? "" : "s"}`;
     } else {
       label = fmtDate(s);
@@ -748,9 +781,11 @@ dockEl.addEventListener("change", () => {
   const out = document.getElementById("date-out");
   if (!sEl || !out) return;
   if (eEl && sEl.value) eEl.min = sEl.value;
-  if (sEl.value && eEl && eEl.value && eEl.value >= sEl.value) {
-    const nights = Math.round((new Date(eEl.value) - new Date(sEl.value)) / 86400000);
-    out.textContent = `${fmtDate(sEl.value)} – ${fmtDate(eEl.value)} · ${nights} night${nights === 1 ? "" : "s"}`;
+  if (sEl.value && eEl && eEl.value) {
+    const nights = safeNights(sEl.value, eEl.value);
+    out.textContent = nights === null
+      ? "End date must be after the start date."
+      : `${fmtDate(sEl.value)} – ${fmtDate(eEl.value)} · ${nights} night${nights === 1 ? "" : "s"}`;
   } else if (sEl.value) {
     out.textContent = fmtDate(sEl.value);
   }

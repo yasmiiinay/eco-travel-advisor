@@ -147,6 +147,12 @@ nlu:
     - help me plan where to go
     - I want to arrange a city break
     - let's get started on a trip
+    - I want to plan a trip from [London](origin) to [Paris](destination)
+    - plan a trip from [Madrid](origin) to [Berlin](destination)
+    - help me plan a trip from [Rome](origin) to [Amsterdam](destination)
+    - let's plan a holiday from [Lisbon](origin) to [Vienna](destination)
+    - I'd like to plan an eco trip from [Barcelona](origin) to [Prague](destination)
+    - plan my travel from [Munich](origin) to [Copenhagen](destination)
     - plan a sustainable holiday for me
     - I'm ready to plan my travels
     - can you help me with trip planning

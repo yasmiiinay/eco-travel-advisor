@@ -190,3 +190,17 @@ stories:
           around 100 per day
         intent: inform
       - action: trip_planning_form
+
+  # --- BUGFIX HIGH-3: "plan a trip from X to Y" wording still starts the form
+  #     (the from-to slots themselves are asserted in tests/test_actions_unit.py,
+  #     since slot side-effects are not visible to rasa test core) ---
+  - story: plan a trip with from-to wording starts the form
+    steps:
+      - user: |
+          help me plan a trip from Rome to Amsterdam
+        intent: plan_trip
+        entities:
+          - origin: Rome
+          - destination: Amsterdam
+      - action: trip_planning_form
+      - active_loop: trip_planning_form
