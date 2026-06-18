@@ -257,25 +257,25 @@ body {
 .chip--cta { font-size: 1rem; padding: 13px 20px; }
 .dock__foot { margin: 8px 0 0; font-size: .72rem; color: var(--muted); }
 
-/* Traveller stepper */
+/* Traveller stepper (compact) */
 .stepper {
-  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px;
-  border: 1.5px solid var(--line); border-radius: 999px; padding: 5px; background: var(--surface-2);
+  display: inline-flex; align-items: center; gap: 2px; margin-bottom: 10px;
+  border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface-2);
 }
 .stepper__btn {
-  flex: none; width: 46px; height: 46px; border: 1.5px solid var(--line);
+  flex: none; width: 40px; height: 40px; border: 1.5px solid var(--line);
   background: var(--surface); border-radius: 50%;
-  font-size: 1.35rem; font-weight: 700; color: var(--brand-2); cursor: pointer;
+  font-size: 1.1rem; font-weight: 700; color: var(--brand-2); cursor: pointer;
   display: grid; place-items: center; line-height: 1; padding: 0;
 }
 .stepper__btn:hover { background: var(--green-bg); border-color: var(--brand); }
 .stepper__btn:active { transform: translateY(1px); }
-.stepper__val { width: 52px; text-align: center; font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stepper__val { width: 40px; text-align: center; font-size: 1.02rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 
-/* Equal-width preset row + full-width primary action (tidy alignment) */
-.choices--even { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
-.choices--even .chip { justify-content: center; padding-left: 8px; padding-right: 8px; font-size: .86rem; white-space: nowrap; }
-.chip--block { width: 100%; justify-content: center; margin-top: 10px; }
+/* Equal-width preset row + primary action (compact, tidy alignment) */
+.choices--even { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.choices--even .chip { justify-content: center; padding: 8px; min-height: 40px; font-size: .84rem; white-space: nowrap; }
+.chip--block { width: 100%; justify-content: center; margin-top: 9px; min-height: 44px; }
 
 /* Budget tier cards */
 .tiers { display: flex; flex-direction: column; gap: 9px; margin-bottom: 10px; }

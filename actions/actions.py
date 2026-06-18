@@ -41,10 +41,10 @@ CARBON_DISCLAIMER = "Estimates only. Actual emissions vary with occupancy, route
 
 # Human-friendly provenance label for the carbon card (which data_source produced it).
 SOURCE_LABEL = {
-    "climatiq": "Climatiq API",
-    "neondb": "stored factors (database)",
-    "json_fallback": "stored factors (offline data)",
-    "unavailable": "unavailable",
+    "climatiq": "Climatiq API (live)",
+    "neondb": "NeonDB database",
+    "json_fallback": "Offline dataset",
+    "unavailable": "Unavailable",
 }
 
 # Weights for the composite ranking score, chosen by the user's sustainability
