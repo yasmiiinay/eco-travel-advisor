@@ -667,12 +667,12 @@ function buildTravellerStepper() {
       <span class="stepper__val" id="trav-val" aria-live="polite">2</span>
       <button type="button" class="stepper__btn" data-trav-step="1" aria-label="One more traveller">+</button>
     </div>
-    <div class="choices">
+    <div class="choices choices--even">
       <button type="button" class="chip" data-trav-set="1">Solo</button>
       <button type="button" class="chip" data-trav-set="2">Couple</button>
       <button type="button" class="chip" data-trav-set="4">Family of 4</button>
     </div>
-    <button type="button" class="chip chip--primary" data-trav-continue>Continue</button>`;
+    <button type="button" class="chip chip--primary chip--block" data-trav-continue>Continue</button>`;
 }
 function setTrav(n) {
   travCount = Math.min(9, Math.max(1, n));
