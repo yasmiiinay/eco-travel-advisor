@@ -522,33 +522,29 @@ function enterAdvisor(summary) {
   addBanner("You're now chatting with Maya, a human travel advisor.");
 
   const route = summary.route && summary.route !== "- → -" ? summary.route : "your trip";
-  const date = summary.travel_date && summary.travel_date !== "-" ? ` on ${summary.travel_date}` : "";
-  const pref = summary.preference && summary.preference !== "-" ? ` and your “${summary.preference}” preference` : "";
 
   // Free text is primary in advisor mode. The trip is already on the context card
   // above, and the header keeps a persistent "Return to assistant" button, so the
   // dock just needs a hint (no duplicate back button).
   setDock(`<p class="dock__hint">You're talking to a person now. Type below, or use “Return to assistant” at the top to go back.</p>`);
 
-  advisorSay(`Hi, I'm Maya 👋 I can see your <b>${escapeHtml(route)}</b> plan${escapeHtml(pref)}.`, 700);
-  advisorSay(`Want me to check greener rail availability${escapeHtml(date)} and tailor the eco-hotels for you?`, 1900);
+  // Maya is a relay/triage contact: she confirms she has the full context and
+  // invites the user to say what they need, without promising to solve it herself.
+  advisorSay(`Hi, I'm Maya 👋 I've got your <b>${escapeHtml(route)}</b> plan in front of me.`, 700);
+  advisorSay(`Tell me what you'd like help with and I'll pass it to the right specialist.`, 1700);
 }
 
-const ADVISOR_LINES = [
-  "Good question, let me look into that against your trip details.",
-  "I can definitely arrange that. I still have your full plan and the recommendations in front of me.",
-  "Based on your sustainability preference, I'd lean towards the rail option. Want me to hold it?",
-  "Noted. I'll factor that into your itinerary and follow up by email with the eco-certified stays.",
-];
-let advisorTurn = 0;
+// Maya is a relay/triage contact, not an answer engine: she never parses the
+// user's text or tries to solve it, she only confirms it has been captured and
+// will be passed on. This keeps the handover honest and removes any chance of a
+// wrong, out-of-scope, or inconsistent "answer".
 function advisorReply() {
-  const line = ADVISOR_LINES[advisorTurn % ADVISOR_LINES.length];
-  advisorTurn++;
-  advisorSay(escapeHtml(line), 900);
+  advisorSay("Got it. I've noted that alongside your trip details so a specialist can follow up. Anything else you'd like me to pass along?", 900);
 }
 
-function returnToAssistant() {
-  if (!advisorMode) return;                       // guard against double-trigger
+// Reset only the advisor-mode UI (header, badge, buttons, flag). No banner and no
+// message is sent, so callers can decide what happens next (resume vs reset).
+function exitAdvisorUI() {
   advisorMode = false;
   appEl.dataset.mode = "bot";
   titleEl.textContent = "Eco-Travel Advisor";
@@ -556,6 +552,11 @@ function returnToAssistant() {
   modeBadgeEl.textContent = "Chatbot";
   document.getElementById("btn-handover").hidden = false;
   document.getElementById("btn-return").hidden = true;
+}
+
+function returnToAssistant() {
+  if (!advisorMode) return;                       // guard against double-trigger
+  exitAdvisorUI();
   addBanner("You're back with the Eco-Travel Advisor. Your trip and the advisor's notes are saved.");
   // Resume the planning flow so the user always has a clear next step instead of an
   // empty dock: Rasa re-asks the next unfilled slot (or re-shows the results if the
@@ -1088,7 +1089,7 @@ document.getElementById("confirm-no").addEventListener("click", closeConfirm);
 document.getElementById("confirm-yes").addEventListener("click", () => {
   closeConfirm();
   chatEl.innerHTML = "";
-  if (advisorMode) returnToAssistant();
+  if (advisorMode) exitAdvisorUI();   // leave advisor UI cleanly; reset (below) is the only send
   sendToRasa("/reset_trip", "Reset trip");
 });
 
