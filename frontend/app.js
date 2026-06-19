@@ -525,12 +525,10 @@ function enterAdvisor(summary) {
   const date = summary.travel_date && summary.travel_date !== "-" ? ` on ${summary.travel_date}` : "";
   const pref = summary.preference && summary.preference !== "-" ? ` and your “${summary.preference}” preference` : "";
 
-  // Free text is primary in advisor mode; two quick actions help.
-  setDock(`<p class="dock__hint">You're talking to a person now — type below, or:</p>
-    <div class="choices">
-      <button type="button" class="chip" data-advisor-summary>📋 Share trip summary</button>
-      <button type="button" class="chip" data-advisor-end>End chat</button>
-    </div>`);
+  // Free text is primary in advisor mode. The trip is already on the context card
+  // above, and the header keeps a persistent "Return to assistant" button, so the
+  // dock just needs a hint (no duplicate back button).
+  setDock(`<p class="dock__hint">You're talking to a person now. Type below, or use “Return to assistant” at the top to go back.</p>`);
 
   advisorSay(`Hi, I'm Maya 👋 I can see your <b>${escapeHtml(route)}</b> plan${escapeHtml(pref)}.`, 700);
   advisorSay(`Want me to check greener rail availability${escapeHtml(date)} and tailor the eco-hotels for you?`, 1900);
@@ -549,15 +547,8 @@ function advisorReply() {
   advisorSay(escapeHtml(line), 900);
 }
 
-// Re-share the trip snapshot inside advisor mode.
-function advisorShareSummary() {
-  const s = (lastHandover && lastHandover.summary) || {};
-  advisorSay(`Here's what I have: <b>${escapeHtml(s.route || "your trip")}</b> · ` +
-    `${escapeHtml(String(s.travel_date || "-"))} · ${escapeHtml(String(s.travellers || "-"))} traveller(s) · ` +
-    `${escapeHtml(String(s.budget || "-"))} · ${escapeHtml(String(s.preference || "-"))}.`, 600);
-}
-
 function returnToAssistant() {
+  if (!advisorMode) return;                       // guard against double-trigger
   advisorMode = false;
   appEl.dataset.mode = "bot";
   titleEl.textContent = "Eco-Travel Advisor";
@@ -566,7 +557,10 @@ function returnToAssistant() {
   document.getElementById("btn-handover").hidden = false;
   document.getElementById("btn-return").hidden = true;
   addBanner("You're back with the Eco-Travel Advisor. Your trip and the advisor's notes are saved.");
-  setDockHint("Tap an option or type to continue planning.");
+  // Resume the planning flow so the user always has a clear next step instead of an
+  // empty dock: Rasa re-asks the next unfilled slot (or re-shows the results if the
+  // plan was already complete), and the matching tappable widget is rendered.
+  sendToRasa("/plan_trip", false);
 }
 
 /* --------------------------------------------------------------------------
@@ -943,7 +937,6 @@ dockEl.addEventListener("click", (ev) => {
     connectToAdvisor();
     return;
   }
-  if (ev.target.closest("[data-advisor-summary]")) { advisorShareSummary(); return; }
   if (ev.target.closest("[data-advisor-end]")) { returnToAssistant(); return; }
 
   // Traveller stepper.
