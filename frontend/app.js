@@ -513,6 +513,9 @@ function advisorSay(html, delay = 900) {
 
 function enterAdvisor(summary) {
   advisorMode = true;
+  advisorMsgCount = 0;
+  advisorPhase = "relay";
+  setComposerEnabled(true);
   appEl.dataset.mode = "advisor";
   titleEl.textContent = "Human Travel Advisor";
   statusTextEl.textContent = "Maya · online";
@@ -534,12 +537,87 @@ function enterAdvisor(summary) {
   advisorSay(`Tell me what you'd like help with and I'll pass it to the right specialist.`, 1700);
 }
 
-// Maya is a relay/triage contact, not an answer engine: she never parses the
-// user's text or tries to solve it, she only confirms it has been captured and
-// will be passed on. This keeps the handover honest and removes any chance of a
-// wrong, out-of-scope, or inconsistent "answer".
-function advisorReply() {
-  advisorSay("Got it. I've noted that alongside your trip details so a specialist can follow up. Anything else you'd like me to pass along?", 900);
+// --- Advisor mode: a small, deterministic state machine (no NLU, no parsing) ---
+// Maya is a relay/triage contact, not an answer engine. She confirms each message
+// is captured, then after a couple of turns checks whether everything is resolved.
+// If not, she takes an email (format-validated only, never stored) for a specialist
+// follow-up and softly closes the chat. Every branch is driven by taps or a simple
+// format check, so there is no chance of a wrong or out-of-scope "answer".
+let advisorMsgCount = 0;
+let advisorPhase = "relay";   // relay | awaiting_resolved | awaiting_email | closed
+
+function isLikelyEmail(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
+}
+
+// Soft close: silence the composer but keep the header "Return to assistant" open.
+function setComposerEnabled(on) {
+  const input = document.getElementById("text-input");
+  if (input) {
+    input.disabled = !on;
+    input.placeholder = on ? "Type here, or tap an option above…" : "This advisor chat has ended";
+  }
+  if (sendBtnEl) sendBtnEl.disabled = !on;
+}
+
+function advisorHandleText(text) {
+  // Email step: validate the format only (never parsed for meaning, never stored).
+  if (advisorPhase === "awaiting_email") {
+    addUser(text);
+    if (isLikelyEmail(text)) {
+      advisorCloseChat(`Thanks. A specialist will follow up at <b>${escapeHtml(text)}</b> with your full trip context.`);
+    } else {
+      advisorSay("That doesn't look like an email address. Could you type it again, for example name@example.com?", 700);
+    }
+    return;
+  }
+  if (advisorPhase === "closed") return;   // composer is disabled, but guard anyway
+
+  // Relay phase: confirm capture, and after a couple of turns check in.
+  addUser(text);
+  advisorMsgCount += 1;
+  advisorSay("Got it. I've noted that alongside your trip details so a specialist can follow up.", 900);
+  if (advisorMsgCount >= 2 && advisorPhase === "relay") {
+    advisorPhase = "awaiting_resolved";
+    setTimeout(askResolved, 1600);
+  }
+}
+
+function askResolved() {
+  advisorSay("Have I got everything, or is there something still unresolved?", 500);
+  setDock(`<div class="choices">
+    <button type="button" class="chip chip--primary" data-advisor-resolved>All sorted, thanks</button>
+    <button type="button" class="chip" data-advisor-unresolved>Still need help</button>
+  </div>`);
+}
+
+function advisorResolved() {
+  addUser("All sorted, thanks");
+  advisorCloseChat("Great, you're all set. I'll pass your trip and notes to the team. You can head back to the planner whenever you like.");
+}
+
+function advisorNeedHelp() {
+  addUser("Still need help");
+  advisorPhase = "awaiting_email";
+  advisorSay("No problem. Leave an email and a specialist will follow up shortly with your full trip context.", 700);
+  setDock(`<p class="dock__hint">Type your email below, or:</p>
+    <div class="choices"><button type="button" class="chip" data-advisor-skip-email>Skip, just pass it on</button></div>`);
+}
+
+function advisorSkipEmail() {
+  addUser("Skip, just pass it on");
+  advisorCloseChat("No problem, I'll pass your trip and notes to the team and a specialist will pick it up from here.");
+}
+
+// Final message, then a soft close: silence the composer but leave the header
+// "Return to assistant" available so the user is never trapped.
+function advisorCloseChat(finalLine) {
+  advisorPhase = "closed";
+  advisorSay(finalLine, 700);
+  setTimeout(() => {
+    setDock(`<p class="dock__hint">This advisor chat is wrapped up. Use “Return to assistant” at the top to keep planning.</p>`);
+    setComposerEnabled(false);
+  }, 1100);
 }
 
 // Reset only the advisor-mode UI (header, badge, buttons, flag). No banner and no
@@ -552,6 +630,9 @@ function exitAdvisorUI() {
   modeBadgeEl.textContent = "Chatbot";
   document.getElementById("btn-handover").hidden = false;
   document.getElementById("btn-return").hidden = true;
+  advisorPhase = "relay";          // reset so a later handover starts clean
+  advisorMsgCount = 0;
+  setComposerEnabled(true);        // re-enable the composer after a soft close
 }
 
 function returnToAssistant() {
@@ -939,6 +1020,11 @@ dockEl.addEventListener("click", (ev) => {
     return;
   }
 
+  // Advisor-mode wrap-up: resolved? -> close, or take an email then close.
+  if (ev.target.closest("[data-advisor-resolved]")) { advisorResolved(); return; }
+  if (ev.target.closest("[data-advisor-unresolved]")) { advisorNeedHelp(); return; }
+  if (ev.target.closest("[data-advisor-skip-email]")) { advisorSkipEmail(); return; }
+
   // Traveller stepper.
   const tStep = ev.target.closest("[data-trav-step]");
   if (tStep) { setTrav(travCount + Number(tStep.dataset.travStep)); return; }
@@ -1060,7 +1146,7 @@ document.getElementById("composer").addEventListener("submit", (ev) => {
   const text = input.value.trim();
   if (!text) return;
   input.value = "";
-  if (advisorMode) { addUser(text); advisorReply(); return; }
+  if (advisorMode) { advisorHandleText(text); return; }
   addUser(text);
   sendToRasa(text, false);
 });
