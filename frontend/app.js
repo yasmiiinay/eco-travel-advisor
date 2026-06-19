@@ -839,9 +839,8 @@ function buildWelcomeDock() {
   return `<p class="dock__hint">Plan a lower-carbon trip between European cities.</p>
     <div class="choices">
       <button type="button" class="chip chip--primary chip--cta" data-rasa-payload="/plan_trip" data-user-label="Plan a trip">🌿 Plan a trip</button>
-      <button type="button" class="chip" data-handover-start>🧑‍💼 Talk to a human</button>
     </div>
-    <p class="dock__foot">Carbon figures are estimates.</p>`;
+    <p class="dock__foot">Carbon figures are estimates. Need a person? Use “Talk to a human” at the top.</p>`;
 }
 
 // Traveller stepper: − value + with quick presets and a Continue button.
