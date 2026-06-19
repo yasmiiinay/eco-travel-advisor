@@ -937,7 +937,6 @@ dockEl.addEventListener("click", (ev) => {
     connectToAdvisor();
     return;
   }
-  if (ev.target.closest("[data-advisor-end]")) { returnToAssistant(); return; }
 
   // Traveller stepper.
   const tStep = ev.target.closest("[data-trav-step]");
