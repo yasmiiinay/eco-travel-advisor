@@ -60,8 +60,33 @@ public tunnel is needed in production.
 **Full step-by-step — including the Hugging Face Spaces deploy and the secrets list — is in
 [`docs/deployment.md`](docs/deployment.md).**
 
-Live demo: `https://<your-username>-eco-travel-advisor.hf.space`
-Source: `https://github.com/<your-username>/eco-travel-advisor`
+Live demo: deployed on Hugging Face Spaces (Docker); the live URL is provided in the project report.
+Source: `https://github.com/yasmiiinay/eco-travel-advisor`
+
+## Grading / live demo
+
+- **API keys are optional** and, when used, are stored only in the Hugging Face Space **Secrets**
+  panel (never committed). With keys set, the deployed app uses the live APIs; without them it runs
+  fully on the stored prototype factors.
+- **Live APIs are called only during recommendation generation**, not on page load or on every
+  message. Results are **cached per route/mode**, so repeating the same trip does not re-call an API.
+- **Cache and fallback protect the demo:** if a live API is unavailable or its quota is exhausted,
+  the carbon card transparently shows the stored source (NeonDB or Offline dataset) and the app keeps
+  working. The grader will always get a result.
+
+**Suggested demo path (for the grader):**
+
+1. Open the Hugging Face Space and tap **Plan a trip**.
+2. Origin **Paris**, destination **Copenhagen**.
+3. Dates: choose **Flexible dates**.
+4. Travellers: **2**.
+5. Budget: **Mid**.
+6. Sustainability priority: **Lowest carbon**.
+7. The carbon card shows the active data source (e.g. **Climatiq API** when the key is configured;
+   otherwise **Offline dataset**), and the transport comparison is ranked for the chosen priority.
+
+If the live API quota is exhausted at any point, the app still produces a complete plan using the
+stored prototype factors.
 
 ## Carbon API integration (Climatiq) & limitations
 
