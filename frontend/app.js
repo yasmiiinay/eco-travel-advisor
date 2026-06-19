@@ -186,6 +186,11 @@ async function refreshFromTracker() {
       else rasaTrip[k] = v;
     });
     renderSummary();
+    // "Quick 3 questions" handover: once the critical slots are in, connect.
+    if (handoverAfterCritical && !advisorMode && criticalSlotsFilled()) {
+      handoverAfterCritical = false;
+      connectToAdvisor();
+    }
   } catch (_) { /* offline / CORS — keep the local mirror */ }
 }
 
@@ -417,15 +422,31 @@ function renderAlert(c) {
 let advisorMode = false;
 let lastHandover = null;
 let dockBeforeHandover = null;
+let handoverAfterCritical = false;   // set when "Quick 3 questions" is collecting first
 
-// Step 1: ask before connecting (a trust checkpoint, not an instant jump).
+// The three slots an advisor most needs: where from, where to, and when.
+function criticalSlotsFilled() {
+  return Boolean(rasaTrip.origin && rasaTrip.destination && rasaTrip.travel_date);
+}
+
+// Step 1: ask before connecting (a trust checkpoint, not an instant jump). When the
+// critical context is already known we go straight to the confirm; when it is
+// missing we offer to gather a few basics first so the advisor starts informed.
 function startHandover() {
   if (advisorMode) return;
   dockBeforeHandover = dockEl.innerHTML;        // so "Stay" can restore the step
-  addBot("Connect you to a human travel advisor? They'll have your full trip context.");
+  if (criticalSlotsFilled()) {
+    addBot("Connect you to a human travel advisor? They'll have your full trip context.");
+    setDock(`<div class="choices">
+      <button type="button" class="chip chip--primary" data-handover-confirm>Yes, connect me</button>
+      <button type="button" class="chip" data-handover-cancel>Stay with the assistant</button>
+    </div>`);
+    return;
+  }
+  addBot("Happy to connect you. Maya can help faster if she has a few basics first, or you can skip straight through.");
   setDock(`<div class="choices">
-    <button type="button" class="chip chip--primary" data-handover-confirm>Yes, connect me</button>
-    <button type="button" class="chip" data-handover-cancel>Stay with the assistant</button>
+    <button type="button" class="chip chip--primary" data-handover-quick>Quick 3 questions</button>
+    <button type="button" class="chip" data-handover-skip>Skip &amp; connect now</button>
   </div>`);
 }
 
@@ -440,8 +461,11 @@ function connectToAdvisor() {
 function renderHandover(c) {
   lastHandover = c;
   const s = c.summary || {};
-  const checks = (c.transferred || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("");
-  const rows = [
+  // Keep only rows that actually have a value, so a partial or empty handover never
+  // shows a column of "-" placeholders (which read like an error).
+  const clean = (v) => (v != null && String(v).trim() !== "" && String(v) !== "-"
+                        && String(v) !== "- → -");
+  const rowDefs = [
     ["Route", s.route],
     ["Dates", s.travel_date],
     ["Travellers", s.travellers],
@@ -449,9 +473,18 @@ function renderHandover(c) {
     ["Preference", s.preference],
     (s.estimated_co2_kg != null && s.estimated_co2_kg !== "")
       ? ["Est. carbon", `${s.estimated_co2_kg} kg CO₂e`] : null,
-  ].filter(Boolean).map(([k, v]) =>
+  ].filter(Boolean).filter(([, v]) => clean(v));
+  const hasContext = rowDefs.length > 0;
+  const rows = rowDefs.map(([k, v]) =>
     `<div class="handover__row"><span class="handover__k">${escapeHtml(k)}</span>` +
-    `<span class="handover__v">${escapeHtml(String(v ?? "-"))}</span></div>`).join("");
+    `<span class="handover__v">${escapeHtml(String(v))}</span></div>`).join("");
+  const checks = hasContext
+    ? (c.transferred || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("") : "";
+  const note = hasContext
+    ? "Your conversation so far has been shared with the advisor."
+    : "No trip details captured yet — Maya will start fresh with you.";
+  const tripBlock = hasContext
+    ? `<ul class="handover__check">${checks}</ul><div class="handover__trip">${rows}</div>` : "";
   addFull(`
     <div class="handover">
       <div class="handover__head">
@@ -461,9 +494,8 @@ function renderHandover(c) {
           <div class="handover__role">${escapeHtml((c.advisor && c.advisor.role) || "Human travel advisor")}</div>
         </div>
       </div>
-      <p class="handover__note">Your full conversation has been shared with the advisor.</p>
-      <ul class="handover__check">${checks}</ul>
-      <div class="handover__trip">${rows}</div>
+      <p class="handover__note">${escapeHtml(note)}</p>
+      ${tripBlock}
     </div>`);
   enterAdvisor(s);
 }
@@ -588,19 +620,38 @@ function buildDatePicker() {
     </div>`;
 }
 
-// Flexible flow: pick a month, then a length; we then propose a concrete random
-// date range inside that month so the trip has real dates to plan around.
+// Flexible flow: pick a year, then a month, then a length; we then propose a
+// concrete random date range inside that month so the trip has real dates to plan
+// around. Year and month are chosen separately (cleaner than one long
+// "Month Year" list).
 let flexMonth = null;   // { y, m } chosen month
 
-function buildFlexMonths() {
+// Step 1 of the flexible flow: which year (capped ~18 months out).
+function buildFlexYears() {
   const now = new Date();
+  const cap = new Date(); cap.setMonth(cap.getMonth() + 18);
   let chips = "";
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const label = d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-    chips += `<button type="button" class="chip" data-flex-month="${d.getFullYear()}-${d.getMonth()}">${escapeHtml(label)}</button>`;
+  for (let y = now.getFullYear(); y <= cap.getFullYear(); y++) {
+    chips += `<button type="button" class="chip" data-flex-year="${y}">${y}</button>`;
   }
-  return `<p class="dock__hint">Which month would you like to travel?</p><div class="choices">${chips}</div>`;
+  return `<p class="dock__hint">Which year would you like to travel?</p><div class="choices">${chips}</div>`;
+}
+
+// Step 2: which month within the chosen year. Past months and any month beyond
+// the ~18-month cap are shown disabled so the user can only pick a valid range.
+function buildFlexMonthsForYear(y) {
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const cap = new Date(); cap.setMonth(cap.getMonth() + 18);
+  let chips = "";
+  for (let m = 0; m < 12; m++) {
+    const first = new Date(y, m, 1);
+    const monthEnd = new Date(y, m + 1, 0);
+    const disabled = monthEnd < todayMidnight || first > cap;
+    const label = first.toLocaleDateString("en-GB", { month: "long" });
+    chips += `<button type="button" class="chip" data-flex-month="${y}-${m}"${disabled ? " disabled" : ""}>${escapeHtml(label)}</button>`;
+  }
+  return `<p class="dock__hint">Which month in ${y}?</p><div class="choices">${chips}</div>`;
 }
 
 function buildFlexNights() {
@@ -709,7 +760,7 @@ function renderRasaResponses(responses) {
 
 // Welcome: a single, confident primary call-to-action.
 function buildWelcomeDock() {
-  return `<p class="dock__hint">Plan a lower-carbon trip between European cities — I'll ask six quick questions.</p>
+  return `<p class="dock__hint">Plan a lower-carbon trip between European cities.</p>
     <div class="choices">
       <button type="button" class="chip chip--primary chip--cta" data-rasa-payload="/plan_trip" data-user-label="Plan a trip">🌿 Plan a trip</button>
       <button type="button" class="chip" data-handover-start>🧑‍💼 Talk to a human</button>
@@ -873,8 +924,23 @@ dockEl.addEventListener("click", (ev) => {
   if (ev.target.closest("[data-handover-start]")) { startHandover(); return; }
   if (ev.target.closest("[data-handover-confirm]")) { connectToAdvisor(); return; }
   if (ev.target.closest("[data-handover-cancel]")) {
-    addBot("No problem — let's keep planning.");
+    addBot("No problem, let's keep planning.");
     if (dockBeforeHandover !== null) setDock(dockBeforeHandover);
+    return;
+  }
+  // Quick 3 questions: reuse the real planner widgets to fill the missing critical
+  // slots (origin, destination, dates), then connect automatically once they're in.
+  if (ev.target.closest("[data-handover-quick]")) {
+    handoverAfterCritical = true;
+    addUser("Quick 3 questions");
+    addBot("Great, just a couple of basics and then I'll connect you.");
+    sendToRasa("/plan_trip", false);
+    return;
+  }
+  // Skip: connect immediately; Maya picks up the conversation as it stands.
+  if (ev.target.closest("[data-handover-skip]")) {
+    addUser("Skip & connect now");
+    connectToAdvisor();
     return;
   }
   if (ev.target.closest("[data-advisor-summary]")) { advisorShareSummary(); return; }
@@ -901,10 +967,18 @@ dockEl.addEventListener("click", (ev) => {
   }
 
   const flex = ev.target.closest("[data-flex-length]");
-  if (flex) {                                          // flexible -> pick a month
+  if (flex) {                                          // flexible -> pick a year first
     addUser("I'm flexible");
-    addBot("No problem, which month suits you?");
-    setDock(buildFlexMonths());
+    addBot("No problem, which year suits you?");
+    setDock(buildFlexYears());
+    return;
+  }
+  const fy = ev.target.closest("[data-flex-year]");
+  if (fy) {                                            // year chosen -> pick a month
+    const y = Number(fy.dataset.flexYear);
+    addUser(String(y));
+    addBot("And which month?");
+    setDock(buildFlexMonthsForYear(y));
     return;
   }
   const fm = ev.target.closest("[data-flex-month]");

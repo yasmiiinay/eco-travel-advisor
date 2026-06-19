@@ -245,6 +245,8 @@ body {
 }
 .chip:hover { border-color: var(--brand); background: var(--green-bg); }
 .chip:active { transform: translateY(1px); }
+.chip:disabled { opacity: .35; cursor: not-allowed; }
+.chip:disabled:hover { border-color: var(--line); background: var(--surface-2); }
 .chip--primary { background: var(--brand); color: #fff; border-color: var(--brand); }
 .chip--primary:hover { background: var(--brand-2); }
 .chip__flag { font-size: 1.05rem; }
