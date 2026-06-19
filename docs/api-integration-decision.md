@@ -10,15 +10,15 @@ Last updated: 2026-06-06. Free-tier / auth details verified via the sources at t
 
 The project already has: NeonDB → JSON fallback, `repository.py`, `carbon.py` (with a
 Climatiq → stored-factor → unavailable cascade), nine Rasa custom actions, and a connected
-v2 front end. Any API we add must therefore:
+front end. Any API we add must therefore:
 
 1. **Have a fallback path** — if the API is missing a key, rate-limited, or down, the
    assistant must keep working (degrade to NeonDB/JSON/curated data). This is non-negotiable
    and is already the architecture's strength.
-2. **Improve the assignment meaningfully** — strengthen the *sustainability* story, not just
+2. **Improve the product meaningfully** — strengthen the *sustainability* story, not just
    add surface area.
 3. **Not destabilise the demo** — no API on the critical path; no OAuth dance that can block
-   a live marking session; no provider that is being decommissioned.
+   a live demo; no provider that is being decommissioned.
 4. **Be free / free-tier** and **citation-safe** — real, documented sources, not invented.
 
 A useful lens: the assistant's *core value* is the **carbon estimate**. That is the one place
@@ -37,7 +37,6 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Reliability risk:** Low–medium (network / rate limits). Mitigated by the existing cascade.
 - **Fallback:** Already built — Climatiq → NeonDB stored factor → local JSON → `unavailable`.
 - **Decision:** **Implement now** (activate the existing stub). Highest thematic payoff, lowest marginal effort.
-- **Grading:** Directly evidences *technical implementation* and *robustness* (live API + graceful degradation), and the *critical-analysis* point that a prototype's simplified factors can be upgraded to an authoritative source.
 
 ### Carbon Interface  *(backup / alternative)*
 - **Data:** carbon estimates incl. a simple **flight** estimate from airport pair + passengers + cabin class.
@@ -47,7 +46,6 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Reliability risk:** Low–medium (request cap on free plan).
 - **Fallback:** Same cascade as Climatiq.
 - **Decision:** **Mock/optional** — keep as a one-line alternative provider in `carbon.py` to show provider-independence, but don't depend on it.
-- **Grading:** Shows abstraction (swappable providers) — a *design quality* point.
 
 ---
 
@@ -60,7 +58,7 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Complexity:** Low, but the data (live schedules/status) is **not** what a carbon-planner needs.
 - **Reliability risk:** Medium (tiny free cap; HTTPS restricted on free plan historically).
 - **Fallback:** Curated transport rows (already in seed data).
-- **Decision:** **IMPLEMENTED** (`actions/aviation.py`) as the assignment's external *flight data* API,
+- **Decision:** **IMPLEMENTED** (`actions/aviation.py`) as the external *flight data* API,
   in place of the decommissioning Amadeus sandbox. It enriches the flight row with a real example
   flight (number + airline); env key only, timeout, per-route cache, and a None-returning fallback so
   the card renders normally without a key. Hotels remain curated (Aviationstack has no hotel data).
@@ -90,7 +88,6 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Fallback:** The existing **haversine engine** in `repository.py` (already the default).
 - **Decision:** **IMPLEMENTED** (`actions/routing.py`) — the carbon estimate uses ORS road-routed
   distance for ground modes (fed to Climatiq), with a clean fallback to the stored haversine distance.
-- **Grading:** *Design depth* — distinguishing straight-line vs routed distance is a good critical-analysis paragraph.
 
 ### Transit schedules (Transitland / Navitia / Google Directions transit)
 - **Data:** real public-transport timetables.
@@ -118,7 +115,7 @@ schedules) is curated prototype content where a real API adds polish but also fr
 > Green Globe data isn't offered as an open developer API). Generic hotel APIs (Amadeus,
 > Booking, Google Places) don't expose a reliable eco-certification field. This is exactly why
 > the curated `hotel.json` (with `eco_certification` + `sustainability_score`) is the right
-> prototype choice — and a good *limitations* point for the report.
+> prototype choice, and a clear limitation to document.
 - **Decision (category):** **Keep curated data; list a real eco-hotel API as future work** (and note none is freely available today).
 
 ---
@@ -133,7 +130,6 @@ schedules) is curated prototype content where a real API adds polish but also fr
 - **Reliability risk:** Low–medium.
 - **Fallback:** Curated `experience.json` (24 experiences).
 - **Decision:** **Nice to have** — could enrich the experience cards with real, local POIs near the destination, filtered to low-impact categories; clean fallback to curated data.
-- **Grading:** *Feature depth* + a tidy *integration + fallback* demonstration.
 
 *Alternatives:* Foursquare Places (100k calls/mo free), Geoapify, LocationIQ — all viable, but
 OpenTripMap fits the "sightseeing/cultural" framing best and is simplest. Listed as alternatives.
@@ -150,7 +146,6 @@ OpenTripMap fits the "sightseeing/cultural" framing best and is simplest. Listed
 - **Reliability risk:** Medium; transactional offset purchase is beyond a non-commercial demo.
 - **Fallback:** Curated `offset_option.json` (24 options).
 - **Decision:** **Mock / future work** — the sandbox could *price* an offset for realism, but actually buying offsets is out of scope. Keep curated offsets; optionally show one live sandbox price as a stretch.
-- **Grading:** Honest scoping (planning vs transacting) is a good *ethics/limitations* point.
 
 *Alternatives:* Patch (enterprise procurement — too heavy), GoClimate (free tier unclear). Future work.
 
@@ -166,7 +161,6 @@ OpenTripMap fits the "sightseeing/cultural" framing best and is simplest. Listed
 - **Reliability risk:** Low; and trivially skippable.
 - **Fallback:** Simply omit the weather line (it's contextual, not core) — the cleanest possible fallback.
 - **Decision:** **Nice to have** — a genuinely easy, no-auth real API: add a "best time to travel / seasonal" or "pack for ~X°C" line using the city coordinates we already have. Zero destabilisation risk.
-- **Grading:** A clean, low-risk example of *real API integration with graceful degradation* — easy marks for *technical implementation* without endangering the demo.
 
 *Alternative:* OpenWeatherMap (free 1M calls/mo but needs a key) — Open-Meteo is preferable here precisely because it needs no key.
 
@@ -185,31 +179,18 @@ OpenTripMap fits the "sightseeing/cultural" framing best and is simplest. Listed
 - **OpenRouteService (routed distances)** — upgrade haversine → routed distance for more realistic emissions, fallback to haversine.
 - *(Carbon Interface as a swappable secondary carbon provider — tiny effort, shows abstraction.)*
 
-### 🔭 Future enhancement only (mock / list in the report)
+### 🔭 Future enhancement only (mock / future work)
 - **Aviation** (Aviationstack / OpenSky) — off-theme for carbon planning.
 - **Transit schedules** (Transitland / Navitia / Google) — high effort, fragile coverage.
 - **Hotels** (Amadeus) — **provider being decommissioned 17 Jul 2026**; and no free *eco-certification* API exists → keep curated `hotel.json`.
 - **Offset purchasing** (Cloverly / Patch) — out of scope for a planning prototype; keep curated offsets (optionally one sandbox price as a stretch).
 
-### One-line rationale for the report
+### One-line rationale
 > "We integrate one authoritative carbon API (Climatiq) on the project's existing
 > fallback cascade, and keep curated, citation-safe data for hotels, experiences and offsets —
 > because the sustainability message lives in the carbon estimate, and because no free,
 > reliable API exists for *eco-certified* accommodation. Weather (Open-Meteo, no key) and POIs
 > (OpenTripMap) are low-risk enrichments, each with a graceful fallback."
-
----
-
-## How this maps to the grading criteria
-
-- **Technical implementation / robustness:** one live API (Climatiq) demonstrated *with* its
-  fallback cascade — show it surviving a forced outage. Optional Open-Meteo/OpenTripMap add
-  breadth without risk.
-- **Critical analysis (Level 7):** the honest scoping (planning vs transacting offsets;
-  simplified vs routed distance; no eco-hotel API exists; a major hotel provider sunsetting)
-  is exactly the kind of evaluation that earns marks, and is all defensible and sourced.
-- **Design quality:** provider-independent carbon layer (Climatiq ↔ Carbon Interface) and a
-  consistent "real API → stored data → curated JSON" pattern across every integration.
 
 ---
 

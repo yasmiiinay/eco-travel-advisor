@@ -52,7 +52,7 @@ For each open case in `tests/manual_debug_cases.md`:
 4. Re-run the manual case and re-capture the tracker.
 5. Re-run the analyser; the category for that case should disappear.
 6. Mark the case **fixed** in `tests/manual_debug_cases.md` and keep the
-   before/after analyser output as evidence for the report.
+   before/after analyser output as evidence.
 
 > After any change to `domain.yml`, `data/*.yml`, `config.yml` you must re-train.
 > After any change to `actions/*.py` you must restart the action server.

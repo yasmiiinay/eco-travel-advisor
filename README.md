@@ -63,18 +63,18 @@ public tunnel is needed in production.
 Live demo: deployed on Hugging Face Spaces (Docker); the live URL is provided in the project report.
 Source: `https://github.com/yasmiiinay/eco-travel-advisor`
 
-## Grading / live demo
+## Live demo notes
 
 - **API keys are optional** and, when used, are stored only in the Hugging Face Space **Secrets**
   panel (never committed). With keys set, the deployed app uses the live APIs; without them it runs
   fully on the stored prototype factors.
 - **Live APIs are called only during recommendation generation**, not on page load or on every
   message. Results are **cached per route/mode**, so repeating the same trip does not re-call an API.
-- **Cache and fallback protect the demo:** if a live API is unavailable or its quota is exhausted,
+- **Cache and fallback keep the app working:** if a live API is unavailable or its quota is exhausted,
   the carbon card transparently shows the stored source (NeonDB or Offline dataset) and the app keeps
-  working. The grader will always get a result.
+  working, so a result is always produced.
 
-**Suggested demo path (for the grader):**
+**Suggested demo path:**
 
 1. Open the Hugging Face Space and tap **Plan a trip**.
 2. Origin **Paris**, destination **Copenhagen**.
@@ -111,7 +111,7 @@ Climatiq API (live)  →  NeonDB stored factor  →  local JSON factor  →  una
 - **Known limitation (activity IDs).** Climatiq `activity_id`s can drift between data versions, so the
   code uses a best-guess id first and, if rejected, resolves a valid id at run time via the Climatiq
   **Search API** before falling back to the stored factor. Live values should still be sanity-checked
-  against an authoritative source (e.g. DEFRA/ICAO) for the report. See
+  against an authoritative source (e.g. DEFRA/ICAO). See
   `docs/api-integration-decision.md` for the full API evaluation.
 
 **Smoke test:** `python actions/carbon.py` (or notebook section 10) — runs the same with or without a
@@ -138,7 +138,7 @@ retained (see `docs/api-integration-decision.md`).
 
 ## Location & routing (OpenCage GPS + OpenRouteService)
 
-Two further optional APIs cover the brief's location/routing requirement, both with fallbacks:
+Two further optional APIs cover the location and routing features, both with fallbacks:
 
 - **GPS / OpenCage (`actions/geo.py`).** The origin step offers **"📍 Use my location"**: the browser
   shares coordinates, and the backend maps them to the **nearest supported city** (great-circle over

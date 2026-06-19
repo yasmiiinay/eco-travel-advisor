@@ -1,8 +1,8 @@
 # Testing Strategy — Eco-Travel Advisor
 
 This project is evaluated at four levels, from optimistic to rigorous. Reporting all four
-honestly (rather than only the flattering in-sample figure) is itself part of the Level 7
-critical-analysis expectation.
+honestly, rather than only the flattering in-sample figure, is part of a rigorous and critical
+evaluation.
 
 ## The four test layers
 
@@ -102,18 +102,3 @@ Record pass/fail and a note for each:
 - [ ] Human handover: -> full context message shown
 - [ ] Recommendations after the form: "show me the options" -> hotels/transport/offset
 - [ ] High-emission path: a long flight route -> red warning + greener alternative
-
-## How to report results honestly
-
-In the report's evaluation section, present the layers in order and interpret them:
-
-1. State the **in-sample** result and explicitly call it optimistic.
-2. Give the **cross-validation** F1 as the real NLU performance; discuss any weak intents from the
-   confusion matrix (e.g. likely confusion between similar control intents) and why.
-3. Give the **held-out Core** accuracy and note it tests fresh phrasings.
-4. Summarise the **manual edge-case** checklist as a small results table, with honest notes on any
-   failures and what you would improve.
-
-Acknowledge the limitations: a modest dataset (~161 training examples), in-sample headline numbers,
-and the fact that deep form/slot behaviour is validated interactively rather than fully automated.
-This candour is exactly what distinguishes a Level 7 evaluation from a descriptive one.
